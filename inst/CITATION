@@ -1,0 +1,20 @@
+citHeader("To cite tna in publications use:")
+
+bibentry(
+  key = "tna_lak",
+  bibtype  = "Misc",
+  doi = "10.48550/arXiv.2411.15486",
+  url = "https://arxiv.org/abs/2411.15486",
+  author = c(person("Mohammed", "Saqr"), person("Sonsoles", "L\u00f3pez-Pernas"), person("Tiina", "T\u00f6rm\u00e4nen"), person("Rogers", "Kaliisa"), person("Kamila", "Misiejuk"), person("Santtu", "Tikka")),
+  title = "Transition Network Analysis: A Novel Framework for Modeling, Visualizing, and Identifying the Temporal Patterns of Learners and Learning Processes",
+  year = "2024"
+)
+bibentry(
+  key      = "tna_package",
+  bibtype  = "Manual",
+  title    = "{tna} : An {R} package for Transition Network Analysis",
+  author   = c(person("Sonsoles", "L\u00f3pez-Pernas"), person("Mohammed", "Saqr"), person("Santtu", "Tikka")),
+  note     = "R package version 0.1.0",
+  year     = "2024",
+  url      = "https://github.com/sonsoleslp/tna"
+)
