@@ -4,28 +4,118 @@
 \alias{group_model}
 \alias{group_model.default}
 \alias{group_model.mhmm}
+\alias{group_tna}
+\alias{group_ftna}
+\alias{group_ctna}
 \title{Build a grouped Transition Network Analysis Model}
 \usage{
-group_model(x, group, ...)
+group_model(x, ...)
 
-\method{group_model}{default}(x, group, ...)
+\method{group_model}{default}(
+  x,
+  group,
+  type = "relative",
+  scaling = character(0L),
+  cols,
+  params = list(),
+  na.rm = TRUE,
+  ...
+)
 
 \method{group_model}{mhmm}(x, ...)
+
+group_tna(x, ...)
+
+group_ftna(x, ...)
+
+group_ctna(x, ...)
 }
 \arguments{
 \item{x}{An \code{stslist} object describing a sequence of events or states to
 be used for building the Markov model. The argument \code{x} also accepts
-a \code{data.frame} object in wide format.
-(each column is a time point with no extra columns). Alternatively, the
-function accepts a mixture Markov model from the library \code{seqHMM}.}
+\code{data.frame} objects in wide format, and \code{tna_data} objects.
+Alternatively, the function accepts a mixture Markov model from \code{seqHMM}.}
+
+\item{...}{Ignored.}
 
 \item{group}{A vector indicating the cluster assignment of each
 row of the data / sequence. Must have the same length as the number of
-rows/sequences of \code{x}.}
+rows/sequences of \code{x}. Alternatively, a single \code{character} string giving
+the column name of the data that defines the group when \code{x} is a wide
+format \code{data.frame} or a \code{tna_data} object.}
 
-\item{...}{Ignored.}
+\item{type}{A \code{character} string describing the weight matrix type.
+Currently supports the following types:
+\itemize{
+\item \code{"relative"} for relative frequencies (probabilities, the default)
+\item \code{"frequency"} for frequencies.
+\item \code{"co-occurrence"} for co-occurrences.
+\item \code{"n-gram"} for n-gram transitions. Captures higher-order transitions by
+considering sequences of n states, useful for identifying longer
+patterns.
+\item \code{"gap"} allows transitions between non-adjacent states, with
+transitions weighted by the gap size.
+\item \code{"window"} creates transitions between all states within a
+sliding window, capturing local relationships
+(several sequences together).
+\item \code{"reverse"} considers the sequences in reverse order
+(resulting in what is called a reply network in some contexts).
+The resulting weight matrix is the transpose of the \code{"frequency"}
+option.
+}}
+
+\item{scaling}{A \code{character} vector describing how to scale the weights
+defined by \code{type}. When a vector is provided, the scaling options are
+applied in the respective order. For example, \code{c("rank", "minmax")} would
+first compute the ranks, then scale them to the unit interval using
+min-max normalization. An empty vector corresponds to no scaling.
+Currently supports the following options:
+\itemize{
+\item \code{"minmax"} performs min-max normalization to scale the weights to the
+unit interval. Note that if the smallest weight is positive, it
+will be zero after scaling.
+\item \code{"max"} Multiplies the weights by the reciprocal of the largest weight
+to scale the weights to the unit interval. This options preserves
+positive ranks, unlike \code{"minmax"} when all weights are positive.
+\item \code{"rank"} Computes the ranks of the weights using \code{\link[base:rank]{base::rank()}} with
+\code{ties.method = "average"}.
+}}
+
+\item{cols}{An \code{integer}/\code{character} vector giving the indices/names of the
+columns that should be considered as sequence data.
+Defaults to all columns, i.e., \code{seq(1, ncol(x))}. The columns are
+automatically determined for \code{tna_data} objects.}
+
+\item{params}{A \code{list} of additional arguments for models of specific
+\code{type}. The potential elements of this list are:
+\itemize{
+\item \code{n_gram}: An \code{integer} for n-gram transitions specifying the number of
+adjacent events. The default value is 2.
+\item \code{max_gap}: An \code{integer} for the gap-allowed transitions specifying the
+largest allowed gap size. The default is 1.
+\item \code{window_size}: An \code{integer} for the sliding window transitions
+specifying the window size. The default is 2.
+\item \code{weighted}: A \code{logical} value. If \code{TRUE}, the transitions
+are weighted by the inverse of the sequence length. Can be used for
+frequency, co-occurrence and reverse model types. The default is
+\code{FALSE}.
+}}
+
+\item{na.rm}{A \code{logical} value that determines if observations with \code{NA}
+value in \code{group} be removed. If \code{FALSE}, an additional category for \code{NA}
+values will be added. The default is \code{FALSE} and a warning is issued
+if \code{NA} values are detected.}
 }
 \value{
+An object of class \code{group_tna} which is a \code{list} containing one
+element per cluster. Each element is a \code{tna} object.
+
+An object of class \code{group_tna} which is a \code{list} containing one
+element per cluster. Each element is a \code{tna} object.
+
+An object of class \code{group_tna} which is a \code{list} containing one
+element per cluster. Each element is a \code{tna} object.
+
 An object of class \code{group_tna} which is a \code{list} containing one
 element per cluster. Each element is a \code{tna} object.
 }
@@ -35,8 +125,16 @@ each cluster from a given sequence, wide-formatted dataframe,
 or a mixture Markov model.
 }
 \examples{
-group <- c(rep("High", 100), rep("Low", 100))
-model <- group_model(engagement, group = group)
+group <- c(rep("High", 1000), rep("Low", 1000))
+model <- group_model(group_regulation, group = group)
+
+model <- group_model(engagement_mmm)
+
+model <- group_tna(group_regulation, group = gl(2, 1000))
+
+model <- group_ftna(group_regulation, group = gl(2, 1000))
+
+model <- group_ctna(group_regulation, group = gl(2, 1000))
 
 }
 \seealso{
@@ -54,6 +152,9 @@ Cluster-related functions
 \code{\link{plot.group_tna_cliques}()},
 \code{\link{plot.group_tna_communities}()},
 \code{\link{plot.group_tna_stability}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.group_tna_bootstrap}()},
 \code{\link{print.group_tna_centralities}()},
@@ -83,6 +184,9 @@ Cluster-related functions
 \code{\link{plot.group_tna_cliques}()},
 \code{\link{plot.group_tna_communities}()},
 \code{\link{plot.group_tna_stability}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.group_tna_bootstrap}()},
 \code{\link{print.group_tna_centralities}()},
@@ -112,6 +216,9 @@ Cluster-related functions
 \code{\link{plot.group_tna_cliques}()},
 \code{\link{plot.group_tna_communities}()},
 \code{\link{plot.group_tna_stability}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.group_tna_bootstrap}()},
 \code{\link{print.group_tna_centralities}()},

@@ -24,7 +24,7 @@ Plot Found Cliques
 \examples{
 model <- group_model(engagement_mmm)
 cliq <- cliques(model, size = 2)
-plot(cliq)
+plot(cliq, ask = F)
 
 }
 \seealso{
@@ -42,6 +42,9 @@ Cluster-related functions
 \code{\link{plot.group_tna_centralities}()},
 \code{\link{plot.group_tna_communities}()},
 \code{\link{plot.group_tna_stability}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.group_tna_bootstrap}()},
 \code{\link{print.group_tna_centralities}()},

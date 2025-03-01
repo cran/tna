@@ -9,7 +9,9 @@ plot_model(
   labels,
   colors,
   edge.labels = TRUE,
+  edge.label.position = 0.65,
   layout = "circle",
+  layout_args = list(),
   mar = rep(5, 4),
   theme = "colorblind",
   ...
@@ -24,6 +26,8 @@ plot_model(
 
 \item{edge.labels}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
 
+\item{edge.label.position}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
+
 \item{layout}{One of the following:
 \itemize{
 \item A \code{character} string describing a \code{qgraph} layout.
@@ -31,6 +35,9 @@ plot_model(
 \code{x} and \code{y} columns for the node positions.
 \item A layout function from \code{igraph}.
 }}
+
+\item{layout_args}{A \code{list} of arguments to pass to the \code{igraph} layout
+function when \code{layout} is a function.}
 
 \item{mar}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
 
@@ -49,3 +56,4 @@ m <- matrix(rexp(25), 5, 5)
 plot_model(m)
 
 }
+\keyword{internal}

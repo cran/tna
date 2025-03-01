@@ -27,7 +27,7 @@ A \code{tna} or \code{group_tna} object that has not been pruned.
 Restore a Pruned Transition Network Analysis Model
 }
 \examples{
-model <- tna(engagement)
+model <- tna(group_regulation)
 pruned_model <- prune(model, method = "threshold", threshold = 0.1)
 depruned_model <- deprune(pruned_model) # restore original model
 
@@ -47,6 +47,9 @@ Cluster-related functions
 \code{\link{plot.group_tna_cliques}()},
 \code{\link{plot.group_tna_communities}()},
 \code{\link{plot.group_tna_stability}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.group_tna_bootstrap}()},
 \code{\link{print.group_tna_centralities}()},

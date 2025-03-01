@@ -19,7 +19,7 @@ p-value and confidence interval of each edge.
 Print Bootstrap Summary
 }
 \examples{
-model <- tna(engagement)
+model <- tna(group_regulation)
 # Small number of iterations for CRAN
 boot <- bootstrap(model, iter = 10)
 print(summary(boot))

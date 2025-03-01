@@ -26,7 +26,7 @@
 #' instead, which is a `list` or `tna_cliques` objects.
 #'
 #' @examples
-#' model <- tna(engagement)
+#' model <- tna(group_regulation)
 #'
 #' # Find  2-cliques (dyads)
 #' cliq <- cliques(model, size = 2)
@@ -40,7 +40,7 @@ cliques <- function(x, ...) {
 cliques.tna <- function(x, size = 2, threshold = 0, sum_weights = FALSE, ...) {
   check_missing(x)
   check_class(x, "tna")
-  check_nonnegative(threshold, type = "numeric")
+  check_values(threshold, type = "numeric")
   check_flag(sum_weights)
   stopifnot_(
     checkmate::test_int(x = size, lower = 2),

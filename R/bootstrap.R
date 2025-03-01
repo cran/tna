@@ -27,8 +27,21 @@
 #' draw. Defaults to `1000`.
 #' @param level A `numeric` value representing the significance level for
 #' hypothesis testing and confidence intervals. Defaults to `0.05`.
+#' @param method A `character` string. This argument defines the bootstrap
+#' test statistic. The `"stability"` option (the default) compares edge weights
+#' against a range of "consistent" values defined by `consistency_range`.
+#' Weights that fall outside this range are considered insignificant. In other
+#' words, an edge is considered significant if its value is within the range
+#' in `(1 - level)` * 100% of the bootstrap samples. The `"threshold"` option
+#' instead compares the edge weights against a user-specified `threshold` value.
+#' @param consistency_range A `numeric` vector of length 2. Determines how much
+#' the edge weights may deviate (multiplicatively) from their observed values
+#' (below and above) before they are considered insignificant. The default is
+#' `c(0.75, 1.25)` which corresponds to a symmetric 25% deviation range. Used
+#' only when `method = "stability"`.
 #' @param threshold A `numeric` value to compare edge weights against.
-#' The default is the 10th percentile of the edge weights.
+#' The default is the 10th percentile of the edge weights. Used only when
+#' `method = "threshold"`.
 #' @param ... Ignored.
 #' @return A `tna_bootstrap` object which is a `list` containing the
 #' following elements:
@@ -50,7 +63,7 @@
 #' object, which is a `list` of `tna_bootstrap` objects.
 #'
 #' @examples
-#' model <- tna(engagement)
+#' model <- tna(group_regulation)
 #' # Small number of iterations for CRAN
 #' bootstrap(model, iter = 10)
 #'
@@ -60,19 +73,33 @@ bootstrap <- function(x, ...) {
 
 #' @rdname bootstrap
 #' @export
-bootstrap.tna <- function(x, iter = 1000, level = 0.05, threshold, ...) {
+bootstrap.tna <- function(x, iter = 1000, level = 0.05, method = "stability",
+                          threshold, consistency_range = c(0.75, 1.25), ...) {
   check_missing(x)
   check_tna_seq(x)
-  check_positive(iter)
-  check_probability(level)
+  check_values(iter, strict = TRUE)
+  check_range(level)
+  method <- check_match(method, c("stability", "threshold"))
   if (missing(threshold)) {
     threshold <- unname(stats::quantile(x$weights, probs = 0.1))
   }
-  check_nonnegative(threshold, type = "numeric")
+  check_values(threshold, type = "numeric")
+  stopifnot_(
+    checkmate::test_numeric(
+      x = consistency_range,
+      len = 2L,
+      min = 0,
+      any.missing = FALSE,
+      sorted = TRUE
+    ),
+    "Argument {.arg consistency_range} must be a sorted {.cls numeric}
+     vector of length 2 containing positive values."
+  )
   d <- x$data
   type <- attr(x, "type")
   scaling <- attr(x, "scaling")
-  model <- initialize_model(d, type, scaling, transitions = TRUE)
+  params <- attr(x, "params")
+  model <- initialize_model(d, type, scaling, params, transitions = TRUE)
   trans <- model$trans
   alphabet <- attr(d, "alphabet")
   dim_names <- list(alphabet, alphabet)
@@ -83,10 +110,20 @@ bootstrap.tna <- function(x, iter = 1000, level = 0.05, threshold, ...) {
   weights_boot <- array(0L, dim = c(iter, a, a))
   p_values <- matrix(0, a, a)
   idx <- seq_len(n)
-  for (i in seq_len(iter)) {
-    trans_boot <- trans[sample(idx, n, replace = TRUE), , ]
-    weights_boot[i, , ] <- compute_weights(trans_boot, type, scaling, a)
-    p_values <- p_values + 1L * (weights_boot[i, , ] < threshold)
+  if (method == "stability") {
+    for (i in seq_len(iter)) {
+      trans_boot <- trans[sample(idx, n, replace = TRUE), , ]
+      weights_boot[i, , ] <- compute_weights(trans_boot, type, scaling, a)
+      p_values[] <- p_values +
+        1L * (weights_boot[i, , ] <= weights * consistency_range[1]) +
+        1L * (weights_boot[i, , ] >= weights * consistency_range[2])
+    }
+  } else {
+    for (i in seq_len(iter)) {
+      trans_boot <- trans[sample(idx, n, replace = TRUE), , ]
+      weights_boot[i, , ] <- compute_weights(trans_boot, type, scaling, a)
+      p_values <- p_values + 1L * (weights_boot[i, , ] < threshold)
+    }
   }
   p_values <- p_values / iter
   weights_mean <- apply(weights_boot, c(2, 3), mean, na.rm = TRUE)
@@ -144,7 +181,10 @@ bootstrap.group_tna <- function(x, ...) {
   check_missing(x)
   check_class(x, "group_tna")
   structure(
-    lapply(x, \(i) bootstrap.tna(i, ...)),
+    stats::setNames(
+      lapply(x, bootstrap, ...),
+      names(x)
+    ),
     class = "group_tna_bootstrap"
   )
 }

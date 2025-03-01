@@ -58,8 +58,8 @@ centralized the network is based on the degrees of nodes.
 }
 }
 \examples{
-group <- c(rep("High", 100), rep("Low", 100))
-model <- group_model(engagement, group = group)
+group <- c(rep("High", 1000), rep("Low", 1000))
+model <- group_model(group_regulation, group = group)
 summary(model)
 
 }
@@ -79,6 +79,9 @@ Cluster-related functions
 \code{\link{plot.group_tna_cliques}()},
 \code{\link{plot.group_tna_communities}()},
 \code{\link{plot.group_tna_stability}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.group_tna_bootstrap}()},
 \code{\link{print.group_tna_centralities}()},

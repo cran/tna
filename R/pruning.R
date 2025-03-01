@@ -58,9 +58,9 @@ prune.tna <- function(x, method = "threshold", threshold = 0.1, lowest = 0.05,
     method,
     c("threshold", "lowest", "bootstrap", "disparity")
   )
-  check_nonnegative(threshold, type = "numeric")
-  check_probability(lowest)
-  check_probability(level)
+  check_values(threshold, type = "numeric")
+  check_range(lowest)
+  check_range(level)
   stopifnot_(
     is.null(attr(x, "pruning")),
     "The model has already been pruned."
@@ -221,7 +221,7 @@ pruning_details.tna <- function(x, ...) {
 #' @param ... Ignored.
 #' @return A `tna` or `group_tna` object that has not been pruned.
 #' @examples
-#' model <- tna(engagement)
+#' model <- tna(group_regulation)
 #' pruned_model <- prune(model, method = "threshold", threshold = 0.1)
 #' depruned_model <- deprune(pruned_model) # restore original model
 #'
@@ -259,7 +259,7 @@ deprune.tna <- function(x, ...) {
 #' @return A `tna` or `group_tna` object that has not been pruned. The previous
 #' pruning result can be reactivated with [reprune()].
 #' @examples
-#' model <- tna(engagement)
+#' model <- tna(group_regulation)
 #' pruned_model <- prune(model, method = "threshold", threshold = 0.1)
 #' depruned_model <- deprune(pruned_model) # restore original model
 #' repruned_model <- reprune(depruned_model) # reapply the previous pruning
@@ -318,7 +318,10 @@ prune.group_tna <- function(x, ...) {
   check_missing(x)
   check_class(x, "group_tna")
   structure(
-    lapply(x, \(i) prune.tna(i, ...)),
+    stats::setNames(
+      lapply(x, prune, ...),
+      names(x)
+    ),
     class = "group_tna"
   )
 }
@@ -346,7 +349,10 @@ deprune.group_tna <- function(x, ...) {
   check_missing(x)
   check_class(x, "group_tna")
   structure(
-    lapply(x, \(i) deprune.tna(i, ...)),
+    stats::setNames(
+      lapply(x, deprune, ...),
+      names(x)
+    ),
     class = "group_tna"
   )
 }
@@ -358,7 +364,10 @@ reprune.group_tna <- function(x, ...) {
   check_missing(x)
   check_class(x, "group_tna")
   structure(
-    lapply(x, \(i) reprune.tna(i, ...)),
+    stats::setNames(
+      lapply(x, reprune, ...),
+      names(x)
+    ),
     class = "group_tna"
   )
 }

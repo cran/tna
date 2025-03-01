@@ -22,8 +22,10 @@
 #' @return A `tna_permutation` object which is a `list` with two elements:
 #' `edges` and `centralities`, both containing the following elements
 #'
-#'   * `stats`: A `data.frame` of original differences and p-values for
-#'     each edge or centrality measure
+#'   * `stats`: A `data.frame` of original differences, effect sizes, and
+#'     p-values for each edge or centrality measure. The effect size is
+#'     computed as the observed difference divided by the standard deviation
+#'     of the differences of the permuted samples.
 #'   * `diffs_true`: A `matrix` of differences in the data.
 #'   * `diffs_sig`: A `matrix` showing the significant differences.
 #'
@@ -37,20 +39,27 @@ permutation_test <- function(x, y, iter = 1000, paired = FALSE, level = 0.05,
                              measures = character(0), ...) {
   check_tna_seq(x)
   check_tna_seq(y)
-  check_positive(iter)
+  check_values(iter, strict = TRUE)
   check_flag(paired)
-  check_probability(level)
+  check_range(level)
   # TODO check that networks can be compared
   data_x <- x$data
   data_y <- y$data
-  combined_data <- rbind(data_x, data_y)
-  n_data_x <- nrow(data_x)
-  n_combined <- n_data_x + nrow(data_y)
+  n_x <- nrow(data_x)
+  n_y <- nrow(data_y)
+  stopifnot_(
+    !paired || n_x == n_y,
+    "The number of observations must be the same in {.arg x} and {.arg y}
+     for a paired test."
+  )
+  combined_data <- dplyr::bind_rows(data_x, data_y)
+  n_xy <- n_x + n_y
   weights_x <- x$weights
   weights_y <- y$weights
   a <- length(attr(data_x, "alphabet"))
   type <- attr(x, "type")
   scaling <- attr(x, "scaling")
+  params <- attr(x, "params")
   n_measures <- length(measures)
   include_centralities <- n_measures > 0L
   if (include_centralities) {
@@ -66,12 +75,13 @@ permutation_test <- function(x, y, iter = 1000, paired = FALSE, level = 0.05,
     to = colnames(weights_y)
   )
   edge_names <- paste0(edge_names$from, " -> ", edge_names$to)
-  perm_x <- seq_len(n_data_x)
-  perm_y <- seq(n_data_x + 1L, n_combined)
+  idx_x <- seq_len(n_x)
+  idx_y <- seq(n_x + 1L, n_xy)
   combined_model <- initialize_model(
     combined_data,
     type,
     scaling,
+    params,
     transitions = TRUE
   )
   combined_trans <- combined_model$trans
@@ -82,17 +92,17 @@ permutation_test <- function(x, y, iter = 1000, paired = FALSE, level = 0.05,
   for (i in seq_len(iter)) {
     if (paired) {
       # For paired data, permute within pairs
-      pair_idx <- matrix(seq_len(n_combined), ncol = 2, byrow = TRUE)
+      pair_idx <- matrix(seq_len(n_xy), ncol = 2)
       permuted_pairs <- t(apply(pair_idx, 1, sample))
       perm_idx <- c(permuted_pairs)
     } else {
       # For unpaired data, perform complete randomization
-      perm_idx <- sample(n_combined)
+      perm_idx <- sample(n_xy)
     }
-    trans_perm_x <- combined_trans[perm_idx[perm_x], , ]
-    trans_perm_y <- combined_trans[perm_idx[perm_y], , ]
-    weights_perm_x <- compute_weights(trans_perm_x, type, scaling, s = a)
-    weights_perm_y <- compute_weights(trans_perm_y, type, scaling, s = a)
+    trans_perm_x <- combined_trans[perm_idx[idx_x], , ]
+    trans_perm_y <- combined_trans[perm_idx[idx_y], , ]
+    weights_perm_x <- compute_weights(trans_perm_x, type, scaling, a)
+    weights_perm_y <- compute_weights(trans_perm_y, type, scaling, a)
     if (include_centralities) {
       cent_perm_x <- centralities(weights_perm_x, measures = measures, ...)
       cent_perm_y <- centralities(weights_perm_y, measures = measures, ...)
@@ -107,12 +117,13 @@ permutation_test <- function(x, y, iter = 1000, paired = FALSE, level = 0.05,
       1L * (abs(edge_diffs_perm[i, , ]) >= edge_diffs_true_abs)
   }
   edge_p_values <- edge_p_values / iter
+  edge_diffs_sd <- apply(edge_diffs_perm, c(2, 3), stats::sd)
   edge_diffs_sig <- edge_diffs_true * (edge_p_values < level)
   edge_stats <- data.frame(
     edge_name = edge_names,
     diff_true = c(edge_diffs_true),
-    p_value = c(edge_p_values),
-    stringsAsFactors = FALSE
+    effect_size = c(edge_diffs_true) / c(edge_diffs_sd),
+    p_value = c(edge_p_values)
   )
   out <- list(
     edges = list(
@@ -123,16 +134,18 @@ permutation_test <- function(x, y, iter = 1000, paired = FALSE, level = 0.05,
   )
   if (include_centralities) {
     cent_p_values <- cent_p_values / iter
+    cent_diffs_sd <- apply(cent_diffs_perm, c(2, 3), stats::sd)
     cent_diffs_sig <- cent_diffs_true * (cent_p_values < level)
-    cent_stats <- expand.grid(State = cent_x$State, Centrality = measures)
-    cent_stats$diff_true <- as.vector(cent_diffs_true)
+    cent_stats <- expand.grid(state = cent_x$state, centrality = measures)
+    cent_stats$diff_true <- c(cent_diffs_true)
+    cent_stats$effect_size <- c(cent_diffs_true) / c(cent_diffs_sd)
     cent_stats$p_value <- c(cent_p_values)
     cent_diffs_true <- cbind(
-      data.frame(State = cent_x$State),
+      data.frame(state = cent_x$state),
       as.data.frame(cent_diffs_true)
     )
     cent_diffs_sig <- cbind(
-      data.frame(State = cent_x$State),
+      data.frame(state = cent_x$state),
       as.data.frame(cent_diffs_sig)
     )
     out$centralities <- list(

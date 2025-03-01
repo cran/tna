@@ -21,6 +21,14 @@ test_that("centralities can be plotted", {
     plot.tna_centralities(cm),
     NA
   )
+  expect_error(
+    plot.tna_centralities(cm, colors = color_palette(4)),
+    NA
+  )
+  expect_error(
+    plot.tna_centralities(cm, colors = "red"),
+    NA
+  )
 })
 
 test_that("cliques can be plotted", {
@@ -65,9 +73,14 @@ test_that("permutation test significant edges can be plotted", {
 test_that("model comparison can be plotted", {
   model_x <- tna(engagement[engagement[, 1] == "Active", ])
   model_y <- tna(engagement[engagement[, 1] != "Active", ])
+  model_grouped <- group_tna(engagement_mmm)
   pdf(NULL)
   expect_error(
     plot_compare(model_x, model_y),
+    NA
+  )
+  expect_error(
+    plot_compare(model_grouped),
     NA
   )
 })
@@ -96,6 +109,26 @@ test_that("plotting with different layouts works", {
   expect_error(
     plot.tna(
       mock_tna,
+      layout = igraph::layout_as_tree,
+      layout_args = list(flip.y = FALSE)
+    ),
+    NA
+  )
+  expect_error(
+    plot_model(mock_matrix, layout = "circle"),
+    NA
+  )
+  expect_error(
+    plot_model(mock_matrix, layout = matrix(rnorm(8), 4, 2)),
+    NA
+  )
+  expect_error(
+    plot_model(mock_matrix, layout = igraph::layout_nicely),
+    NA
+  )
+  expect_error(
+    plot_model(
+      mock_matrix,
       layout = igraph::layout_as_tree,
       layout_args = list(flip.y = FALSE)
     ),
@@ -160,12 +193,64 @@ test_that("communities can plotted for clusters", {
     plot(comm),
     NA
   )
+  expect_error(
+    plot(comm, title = "Community detection"),
+    NA
+  )
 })
 
 test_that("histogram of edge weights can be plotted", {
   pdf(NULL)
   expect_error(
     hist(mmm_model),
+    NA
+  )
+})
+
+test_that("comparison results can be plotted", {
+  model_x <- tna(group_regulation[1:200, ])
+  model_y <- tna(group_regulation[1001:1200, ])
+  # Comparing models
+  comp <- compare(model_x, model_y)
+  expect_error(
+    plot(comp, type = "heatmap"),
+    NA
+  )
+  expect_error(
+    plot(comp, type = "scatterplot"),
+    NA
+  )
+  expect_error(
+    plot(comp, type = "centrality_heatmap"),
+    NA
+  )
+  expect_error(
+    plot(comp, type = "weight_density"),
+    NA
+  )
+})
+
+test_that("pruned models can be plotted", {
+  model_pruned <- prune(mock_tna)
+  expect_error(
+    plot(model_pruned),
+    NA
+  )
+})
+
+test_that("mosaic can be plotted", {
+  ftna_model <- ftna(engagement)
+  group_ftna_model <- group_ftna(engagement_mmm)
+  expect_error(
+    plot_mosaic(ftna_model),
+    NA
+  )
+  expect_error(
+    plot_mosaic(group_ftna_model),
+    NA
+  )
+  expect_error(
+    plot_mosaic(mock_tna_data, group = "group"),
     NA
   )
 })

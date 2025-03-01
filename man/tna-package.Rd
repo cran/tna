@@ -11,10 +11,10 @@ and calculating centrality measures. The package relies on the \code{qgraph}
 and \code{igraph} for network plotting and centrality measure calculations.
 }
 \references{
-Saqr M., López-Pernas S., Törmänen T., Kaliisa R., Misiejuk K., Tikka S. (2024).
+Saqr M., López-Pernas S., Törmänen T., Kaliisa R., Misiejuk K., Tikka S. (2025).
 Transition Network Analysis: A Novel Framework for Modeling, Visualizing,
 and Identifying the Temporal Patterns of Learners and Learning Processes.
-\url{https://arxiv.org/abs/2411.15486}
+In \emph{Proceedings of the 15th International Learning Analytics and Knowledge Conference (LAK '25)}, 351-361.
 
 Banerjee A., Chandrasekhar A., Duflo E., Jackson M. (2014).
 Gossip: Identifying Central Individuals in a Social Network.
@@ -36,10 +36,11 @@ A general framework for weighted gene co-expression network analysis.
 Useful links:
 \itemize{
   \item \url{https://github.com/sonsoleslp/tna/}
+  \item \url{http://sonsoles.me/tna/}
   \item Report bugs at \url{https://github.com/sonsoleslp/tna/issues/}
 }
 
 }
 \author{
-Sonsoles López-Pernas, Santtu Tikka, Mohamed Saqr
+Sonsoles López-Pernas, Santtu Tikka, Mohammed Saqr
 }

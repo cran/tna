@@ -22,7 +22,7 @@ pruning result can be reactivated with \code{\link[=reprune]{reprune()}}.
 Restore Previous Pruning of a Transition Network Analysis Model
 }
 \examples{
-model <- tna(engagement)
+model <- tna(group_regulation)
 pruned_model <- prune(model, method = "threshold", threshold = 0.1)
 depruned_model <- deprune(pruned_model) # restore original model
 repruned_model <- reprune(depruned_model) # reapply the previous pruning
@@ -44,6 +44,9 @@ Cluster-related functions
 \code{\link{plot.group_tna_cliques}()},
 \code{\link{plot.group_tna_communities}()},
 \code{\link{plot.group_tna_stability}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.group_tna_bootstrap}()},
 \code{\link{print.group_tna_centralities}()},

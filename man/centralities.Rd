@@ -16,7 +16,8 @@ centralities(x, loops = FALSE, normalize = FALSE, measures, ...)
 \method{centralities}{group_tna}(x, loops = FALSE, normalize = FALSE, measures, ...)
 }
 \arguments{
-\item{x}{A \code{tna} object, a \code{group_tna} object, or a  square \code{matrix} representing edge weights.}
+\item{x}{A \code{tna} object, a \code{group_tna} object, or
+a square \code{matrix} representing edge weights.}
 
 \item{loops}{A \code{logical} value indicating whether to include loops in the
 network when computing the centrality measures (default is \code{FALSE}).}
@@ -32,7 +33,7 @@ matched ignoring case.}
 \item{...}{Ignored.}
 }
 \value{
-A \code{centralities} object which is a tibble (\code{tbl_df})
+A \code{tna_centralities} object which is a tibble (\code{tbl_df}).
 containing centrality measures for each state.
 }
 \description{
@@ -72,7 +73,7 @@ cluster together.
 }
 }
 \examples{
-model <- tna(engagement)
+model <- tna(group_regulation)
 
 # Centrality measures including loops in the network
 centralities(model)
@@ -105,6 +106,9 @@ Cluster-related functions
 \code{\link{plot.group_tna_cliques}()},
 \code{\link{plot.group_tna_communities}()},
 \code{\link{plot.group_tna_stability}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.group_tna_bootstrap}()},
 \code{\link{print.group_tna_centralities}()},

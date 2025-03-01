@@ -36,7 +36,8 @@
 #' @export
 #' @family core
 #' @rdname centralities
-#' @param x A `tna` object, a `group_tna` object, or a  square `matrix` representing edge weights.
+#' @param x A `tna` object, a `group_tna` object, or
+#' a square `matrix` representing edge weights.
 #' @param loops A `logical` value indicating whether to include loops in the
 #'   network when computing the centrality measures (default is `FALSE`).
 #' @param normalize  A `logical` value indicating whether the centralities
@@ -46,10 +47,10 @@
 #'   returned. See 'Details' for available measures. The elements are partially
 #'   matched ignoring case.
 #' @param ... Ignored.
-#' @return A `centralities` object which is a tibble (`tbl_df`)
+#' @return A `tna_centralities` object which is a tibble (`tbl_df`).
 #'   containing centrality measures for each state.
 #' @examples
-#' model <- tna(engagement)
+#' model <- tna(group_regulation)
 #'
 #' # Centrality measures including loops in the network
 #' centralities(model)
@@ -107,7 +108,7 @@ centralities_ <- function(x, loops, normalize, measures) {
     available_centrality_measures,
     measures
   )
-  check_measures(measures)
+  measures <- check_measures(measures)
   diag(x) <- ifelse_(loops, diag(x), 0)
   g <- igraph::graph_from_adjacency_matrix(
     adjmatrix = x,
@@ -123,14 +124,13 @@ centralities_ <- function(x, loops, normalize, measures) {
   names(measures_out) <- measures
   out <- as.data.frame(measures_out)
   if (normalize) {
-    out <- out |>
-      dplyr::mutate(dplyr::across(dplyr::all_of(measures), ranger))
+    out[, measures] <- as.data.frame(lapply(out[, measures], ranger))
   }
+  rn <- rownames(out)
+  out <- tibble::rownames_to_column(out, "state")
+  out$state <- factor(out$state, levels = rn)
   structure(
-    tibble::rownames_to_column(out, "State") |>
-      dplyr::mutate(
-        State = factor(!!rlang::sym("State"), levels = rownames(out))
-      ),
+    out,
     class = c("tna_centralities", "tbl_df", "tbl", "data.frame")
   )
 }
@@ -224,7 +224,7 @@ estimate_centrality_stability <- estimate_cs
 #' instead, which is a `list` of `tna_stability` objects.
 #'
 #' @examples
-#' model <- tna(engagement)
+#' model <- tna(group_regulation)
 #' # Small number of iterations and drop proportions for CRAN
 #' estimate_cs(
 #'   model,
@@ -237,7 +237,8 @@ estimate_cs.tna <- function(x, loops = FALSE, normalize = FALSE,
                             measures = c(
                               "InStrength", "OutStrength", "Betweenness"
                             ), iter = 1000, method = "pearson",
-                            drop_prop = seq(0.1, 0.9, by = 0.1), threshold = 0.7,
+                            drop_prop = seq(0.1, 0.9, by = 0.1),
+                            threshold = 0.7,
                             certainty = 0.95, detailed = FALSE,
                             progressbar = FALSE, ...) {
   check_tna_seq(x)
@@ -245,14 +246,15 @@ estimate_cs.tna <- function(x, loops = FALSE, normalize = FALSE,
   check_flag(normalize)
   check_flag(progressbar)
   check_flag(detailed)
-  check_positive(iter)
-  check_probability(threshold)
-  check_probability(certainty)
+  check_values(iter, strict = TRUE)
+  check_range(threshold)
+  check_range(certainty)
   check_measures(measures)
   d <- x$data
   type <- attr(x, "type")
   scaling <- attr(x, "scaling")
-  model <- initialize_model(d, type, scaling, transitions = TRUE)
+  params <- attr(x, "params")
+  model <- initialize_model(d, type, scaling, params, transitions = TRUE)
   trans <- model$trans
   a <- dim(trans)[2]
   n <- nrow(d)
@@ -289,7 +291,7 @@ estimate_cs.tna <- function(x, loops = FALSE, normalize = FALSE,
     n_drop <- floor(n * prop)
     if (n_drop == 0) {
       warning_(
-        paste0("No cases dropped for proportion ", prop, " skipping...")
+        paste0("No cases dropped for proportion ", prop, ". Skipping...")
       )
       next
     }
@@ -392,11 +394,19 @@ calculate_cs <- function(corr_mat, threshold, certainty, drop_prop) {
 #' @noRd
 rsp_bet <- function(mat, beta = 0.01) {
   n <- ncol(mat)
-  W <- mat * exp(-beta * mat^-1)
+  D <- .rowSums(mat, m = n, n = n)
+  if (any(D == 0)) {
+    return(NA)
+  }
+  P_ref <- diag(D^-1) %*% mat
+  C <- mat^-1
+  C[is.infinite(C)] <- 0
+  W <- P_ref * exp(-beta * C)
   Z <- solve(diag(1, n, n) - W)
-  Zrecip <- Z^-1
-  Zrecip_diag <- diag(Zrecip) * diag(1, n, n)
-  out <- diag(tcrossprod(Z, Zrecip - n * Zrecip_diag) %*% Z)
+  Z_recip <- Z^-1
+  Z_recip[is.infinite(Z_recip)] <- 0
+  Z_recip_diag <- diag(Z_recip) * diag(1, n, n)
+  out <- diag(tcrossprod(Z, Z_recip - n * Z_recip_diag) %*% Z)
   out <- round(out)
   out <- out - min(out) + 1
   out
@@ -445,7 +455,7 @@ centralities.group_tna <- function(x, loops = FALSE,
         )
       }
     ),
-    .id = "Group"
+    .id = "group"
   )
   structure(
     out,
@@ -507,8 +517,7 @@ available_centrality_measures <- c(
   "Clustering"
 )
 
-
-# Centrality measure function wrappers --------------------------------------------
+# Centrality measure function wrappers ----------------------------------------
 
 centrality_funs <- list()
 

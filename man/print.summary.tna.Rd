@@ -19,7 +19,7 @@ metrics and values.
 Print a TNA Summary
 }
 \examples{
-model <- tna(engagement)
+model <- tna(group_regulation)
 print(summary(model))
 
 }

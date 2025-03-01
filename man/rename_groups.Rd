@@ -9,7 +9,7 @@ rename_groups(x, new_names)
 \arguments{
 \item{x}{A \code{group_tna} object.}
 
-\item{new_names}{A \code{vector} containing one name per cluster.}
+\item{new_names}{A \code{character} vector containing one name per cluster.}
 }
 \value{
 A renamed \code{group_tna} object.
@@ -38,6 +38,9 @@ Cluster-related functions
 \code{\link{plot.group_tna_cliques}()},
 \code{\link{plot.group_tna_communities}()},
 \code{\link{plot.group_tna_stability}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.group_tna_bootstrap}()},
 \code{\link{print.group_tna_centralities}()},

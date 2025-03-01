@@ -24,7 +24,7 @@ The \code{tna} object passed as argument \code{x} (invisibly).
 Print a \code{tna} object
 }
 \examples{
-model <- tna(engagement)
+model <- tna(group_regulation)
 print(model)
 
 }

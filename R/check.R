@@ -27,7 +27,18 @@ check_na <- function(x) {
 #' @param type Type of the transition network.
 #' @noRd
 check_model_type <- function(type) {
-  check_match(type, c("relative", "frequency", "co-occurrence"))
+  check_match(
+    type,
+    c(
+      "relative",
+      "frequency",
+      "co-occurrence",
+      "n-gram",
+      "gap",
+      "window",
+      "reverse"
+    )
+  )
 }
 
 #' Check Transition Network Weight Scaling for Validity
@@ -38,7 +49,11 @@ check_model_scaling <- function(scaling) {
   if (length(scaling) == 0L) {
     return(character(0L))
   }
-  check_match(scaling, c("minmax", "max", "rank"), several.ok = TRUE)
+  check_match(
+    scaling,
+    c("minmax", "max", "rank"),
+    several.ok = TRUE
+  )
 }
 
 #' Check that `x` is of specific class
@@ -54,7 +69,7 @@ check_class <- function(x, what) {
   )
 }
 
-#' Check that `x` is a `tna` Object Created from Sequence Data
+#' Check that `x` is a `tna` object created from sequence Data
 #'
 #' @param x An \R object.
 #' @noRd
@@ -93,53 +108,62 @@ check_measures <- function(x) {
       `x` = "Measure{?s} {.val {invalid_measures}} {?is/are} not recognized."
     )
   )
+  available_centrality_measures[measures_match]
 }
 
-#' Check that `x` is Between 0 and 1.
+#' Check that `x` is a non-negative
 #'
-#' @param x An \R object expected to be a single  `numeric` or `integer` value.
-#' @noRd
-check_probability <- function(x) {
-  arg <- deparse(substitute(x))
-  stopifnot_(
-    checkmate::test_number(x = x, lower = 0.0, upper = 1.0),
-    "Argument {.arg {arg}} must be a single
-    {.cls numeric} value between 0 and 1."
-  )
-}
-
-#' Check that `x` is Non-Negative
-#'
-#' @param x An \R object expected to be a single  `numeric` or `integer` value.
+#' @param x An \R object expected to be a `numeric` or `integer`
+#' value or a vector.
 #' @param type A `character` string corresponding to
 #' the type that `x` should be.
+#' @param strict A `logical` value. If `FALSE` (the default), expects
+#' non-negative values and positive otherwise.
+#' @param scalar A `logical` value indicating if `x` should be expected
+#' to be a single value.
 #' @noRd
-check_nonnegative <- function(x, type = "integer") {
+check_values <- function(x, type = "integer", strict = FALSE,
+                         scalar = TRUE) {
   arg <- deparse(substitute(x))
-  suffix <- ifelse_(type == "numeric", " value", "")
+  suffix <- ifelse_(
+    scalar,
+    ifelse_(type == "integer", "", " value"),
+    " vector"
+  )
   test_fun <- ifelse_(
     type == "numeric",
-    checkmate::test_number,
-    checkmate::test_int
+    ifelse_(scalar, checkmate::test_number, checkmate::test_numeric),
+    ifelse_(scalar, checkmate::test_int, checkmate::test_integer)
   )
+  strictness <- ifelse_(strict, "positive", "non-negative")
   stopifnot_(
-    test_fun(x = x, lower = 0),
-    "Argument {.arg {arg}} must be a single
-    non-negative {.cls {type}}{suffix}."
+    test_fun(x = x, lower = as.integer(strict)),
+    "Argument {.arg {arg}} must be a {strictness} {.cls {type}}{suffix}."
   )
 }
 
-#' Check that `x` is Positive
+#' Check that `x` is between a minimum and a maximum value
 #'
-#' @inheritParams check_nonnegative
+#' @param x An \R object expected to be a single  `numeric` or `integer` value.
 #' @noRd
-check_positive <- function(x, type = "integer") {
+check_range <- function(x, type = "numeric", scalar = TRUE,
+                        min = 0.0, max = 1.0) {
   arg <- deparse(substitute(x))
-  suffix <- ifelse_(type == "numeric", " value", "")
+  prefix <- ifelse_(scalar, "be a single", "only contain")
+  suffix <- ifelse_(
+    scalar,
+    ifelse_(type == "integer", "", " value"),
+    " values"
+  )
+  test_fun <- ifelse_(
+    type == "numeric",
+    ifelse_(scalar, checkmate::test_number, checkmate::test_numeric),
+    ifelse_(scalar, checkmate::test_int, checkmate::test_integer)
+  )
   stopifnot_(
-    checkmate::test_int(x = x, lower = 1),
-    "Argument {.arg {arg}} must be a single
-    positive {.cls {type}}{suffix}."
+    test_fun(x = x, lower = min, upper = max),
+    "Argument {.arg {arg}} must {prefix}
+    {.cls {type}} {suffix} between {min} and {max}."
   )
 }
 
@@ -157,11 +181,12 @@ check_flag <- function(x) {
 
 #' Check a `layout` Argument
 #'
-#' @param x A `tna` object
+#' @param x A `tna` or a `tna_cliques` object.
 #' @param layout A `character` string, a `matrix`, or a `function`.
 #' @param args A `list` of arguments to pass to the layout function.
+#' @param ... Additional arguments passed to `as.igraph`.
 #' @noRd
-check_layout <- function(x, layout, args = list()) {
+check_layout <- function(x, layout, args = list(), ...) {
   if (is.character(layout)) {
     layout <- tolower(layout)
     layout <- try(
@@ -174,7 +199,7 @@ check_layout <- function(x, layout, args = list()) {
     stopifnot_(
       !inherits(layout, "try-error"),
       "A {.cls character} layout must be either {.val circle}, {.val groups},
-      or {.val spring}"
+      or {.val spring}."
     )
     return(layout)
   }
@@ -182,14 +207,14 @@ check_layout <- function(x, layout, args = list()) {
     stopifnot_(
       ncol(layout) == 2L,
       c(
-        "A {.cls matrix} layout must have 2 columns.",
+        "A {.cls matrix} layout must have two columns:",
         `x` = "Found {ncol(layout)} columns instead."
       )
     )
     stopifnot_(
       nrow(layout) == nodes(x),
       c(
-        "A {.cls matrix} layout must have a row for each node",
+        "A {.cls matrix} layout must have exactly one row for each node:",
         `x` = "Expected {nodes(x)} rows but {nrow(layout)} were supplied."
       )
     )
@@ -200,7 +225,7 @@ check_layout <- function(x, layout, args = list()) {
     "Argument {.arg layout} must be a {.cls character} string,
      a {.cls matrix}, or a {.cls function}."
   )
-  args$graph <- as.igraph(x)
+  args$graph <- as.igraph(x, ...)
   do.call(what = layout, args = args)
 }
 
@@ -218,7 +243,7 @@ check_weights <- function(x, type) {
       "At least one element of each row of {.arg x} must be positive."
     )
     x[] <- x / rs
-  } else if (type %in% c("frequency", "co-occurrence")) {
+  } else if (type %in% c("frequency", "co-occurrence", "reverse", "window")) {
     x_int <- as.integer(x)
     stopifnot_(
       all(x == x_int) && all(x >= 0),
@@ -254,7 +279,56 @@ check_match <- function(x, choices, several.ok = FALSE) {
   stopifnot_(
     !inherits(x, "try-error"),
     "{prefix} {.arg {arg}} must be either
-    {qty(n_choices)} {.or {.val {choices}}}."
+    {cli::qty(n_choices)} {.or {.val {choices}}}."
   )
   x
+}
+
+#' Check if argument is a character string
+#'
+#' @param x An \R object.
+#' @noRd
+check_string <- function(x) {
+  if (missing(x)) {
+    return()
+  }
+  arg <- deparse(substitute(x))
+  stopifnot_(
+    is.character(x) && length(x) == 1L,
+    "Argument {.arg {arg}} must be a {.cls character} vector of length 1."
+  )
+}
+
+#' Check that indices/names are valid clusters
+#'
+#' @param x A `group_tna` object.
+#' @param i Index of the first cluster.
+#' @param j Index of the second cluster.
+#' @noRd
+check_clusters <- function(x, i, j) {
+  i <- ifelse_(is.numeric(i), as.integer(i), i)
+  j <- ifelse_(is.numeric(j), as.integer(j), j)
+  stopifnot_(
+    !identical(i, j),
+    "Arguments {.arg i} and {.arg j} must be different."
+  )
+  n <- length(x)
+  for (arg in c("i", "j")) {
+    idx <- eval(rlang::sym(arg))
+    stopifnot_(
+      length(idx) == 1L && (is.integer(idx) || is.character(idx)),
+      "Argument {.arg {arg}} must be a {.cls numeric} or a {.cls character}
+      vector of length 1."
+    )
+    stopifnot_(
+      is.integer(idx) || idx %in% names(x),
+      "Argument {.arg {arg}} must be a name of {.arg x} when of type
+      {.cls character}."
+    )
+    stopifnot_(
+      is.character(idx) || (idx >= 1 && idx <= n),
+      "Argument {.arg {arg}} must be between 1 and {n} when of type
+      {.cls numeric}."
+    )
+  }
 }

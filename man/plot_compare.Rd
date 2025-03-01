@@ -2,17 +2,24 @@
 % Please edit documentation in R/plot.R
 \name{plot_compare}
 \alias{plot_compare}
+\alias{plot_compare.tna}
 \title{Plot the difference network between two models}
 \usage{
-plot_compare(x, y, ...)
+plot_compare(x, ...)
+
+\method{plot_compare}{tna}(x, y, theme = NULL, palette = "colorblind", ...)
 }
 \arguments{
-\item{x}{An object of class \code{tna}. It will be the principal model.}
-
-\item{y}{An object of class \code{tna}. It will be the model subtracted from the
-principal model.}
+\item{x}{A \code{tna} object. It will be the principal model.}
 
 \item{...}{Additional arguments passed to \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
+
+\item{y}{A \code{tna} object. It will be the model subtracted from the
+principal model.}
+
+\item{theme}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
+
+\item{palette}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
 }
 \value{
 A \code{qgraph} object displaying the difference network between the
@@ -25,8 +32,8 @@ initial probabilities between model \code{x} and model \code{y}. Green color ind
 that \code{x}is greater than \code{y}and red indicates otherwise.
 }
 \examples{
-model_x <- tna(engagement[engagement[, 1] == "Active", ])
-model_y <- tna(engagement[engagement[, 1] != "Active", ])
+model_x <- tna(group_regulation[group_regulation[, 1] == "plan", ])
+model_y <- tna(group_regulation[group_regulation[, 1] != "plan", ])
 plot_compare(model_x, model_y)
 
 }

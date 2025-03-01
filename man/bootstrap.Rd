@@ -8,7 +8,15 @@
 \usage{
 bootstrap(x, ...)
 
-\method{bootstrap}{tna}(x, iter = 1000, level = 0.05, threshold, ...)
+\method{bootstrap}{tna}(
+  x,
+  iter = 1000,
+  level = 0.05,
+  method = "stability",
+  threshold,
+  consistency_range = c(0.75, 1.25),
+  ...
+)
 
 \method{bootstrap}{group_tna}(x, ...)
 }
@@ -23,8 +31,23 @@ draw. Defaults to \code{1000}.}
 \item{level}{A \code{numeric} value representing the significance level for
 hypothesis testing and confidence intervals. Defaults to \code{0.05}.}
 
+\item{method}{A \code{character} string. This argument defines the bootstrap
+test statistic. The \code{"stability"} option (the default) compares edge weights
+against a range of "consistent" values defined by \code{consistency_range}.
+Weights that fall outside this range are considered insignificant. In other
+words, an edge is considered significant if its value is within the range
+in \code{(1 - level)} * 100\% of the bootstrap samples. The \code{"threshold"} option
+instead compares the edge weights against a user-specified \code{threshold} value.}
+
 \item{threshold}{A \code{numeric} value to compare edge weights against.
-The default is the 10th percentile of the edge weights.}
+The default is the 10th percentile of the edge weights. Used only when
+\code{method = "threshold"}.}
+
+\item{consistency_range}{A \code{numeric} vector of length 2. Determines how much
+the edge weights may deviate (multiplicatively) from their observed values
+(below and above) before they are considered insignificant. The default is
+\code{c(0.75, 1.25)} which corresponds to a symmetric 25\% deviation range. Used
+only when \code{method = "stability"}.}
 }
 \value{
 A \code{tna_bootstrap} object which is a \code{list} containing the
@@ -70,7 +93,7 @@ estimates, and summary statistics for removed edges, are returned in a
 structured list.
 }
 \examples{
-model <- tna(engagement)
+model <- tna(group_regulation)
 # Small number of iterations for CRAN
 bootstrap(model, iter = 10)
 
@@ -95,6 +118,9 @@ Cluster-related functions
 \code{\link{plot.group_tna_cliques}()},
 \code{\link{plot.group_tna_communities}()},
 \code{\link{plot.group_tna_stability}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.group_tna_bootstrap}()},
 \code{\link{print.group_tna_centralities}()},

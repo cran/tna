@@ -9,57 +9,137 @@
 #' @rdname group_model
 #' @param x An `stslist` object describing a sequence of events or states to
 #'   be used for building the Markov model. The argument `x` also accepts
-#'   a `data.frame` object in wide format.
-#'   (each column is a time point with no extra columns). Alternatively, the
-#'   function accepts a mixture Markov model from the library `seqHMM`.
+#'   `data.frame` objects in wide format, and `tna_data` objects.
+#'   Alternatively, the function accepts a mixture Markov model from `seqHMM`.
 #' @param group A vector indicating the cluster assignment of each
-#'  row of the data / sequence. Must have the same length as the number of
-#'  rows/sequences of `x`.
+#'   row of the data / sequence. Must have the same length as the number of
+#'   rows/sequences of `x`. Alternatively, a single `character` string giving
+#'   the column name of the data that defines the group when `x` is a wide
+#'   format `data.frame` or a `tna_data` object.
+#' @param cols An `integer`/`character` vector giving the indices/names of the
+#'   columns that should be considered as sequence data.
+#'   Defaults to all columns, i.e., `seq(1, ncol(x))`. The columns are
+#'   automatically determined for `tna_data` objects.
+#' @param na.rm A `logical` value that determines if observations with `NA`
+#' value in `group` be removed. If `FALSE`, an additional category for `NA`
+#' values will be added. The default is `FALSE` and a warning is issued
+#' if `NA` values are detected.
+#' @inheritParams build_model
 #' @param ... Ignored.
 #' @return An object of class `group_tna` which is a `list` containing one
 #'   element per cluster. Each element is a `tna` object.
 #'
 #' @examples
-#' group <- c(rep("High", 100), rep("Low", 100))
-#' model <- group_model(engagement, group = group)
+#' group <- c(rep("High", 1000), rep("Low", 1000))
+#' model <- group_model(group_regulation, group = group)
 #'
-group_model <- function(x, group, ...) {
+#' model <- group_model(engagement_mmm)
+#'
+group_model <- function(x, ...) {
   UseMethod("group_model")
 }
 
 #' @export
 #' @family clusters
 #' @rdname group_model
-group_model.default <- function(x, group, ...) {
+group_model.default <- function(x, group, type = "relative",
+                                scaling = character(0L), cols, params = list(),
+                                na.rm = TRUE, ...) {
   check_missing(x)
+  check_missing(group)
   stopifnot_(
-    !missing(group),
-    "Argument {.arg group} is missing."
+    inherits(x, "stslist") ||
+      inherits(x, "data.frame") || inherits(x, "tna_data"),
+    "Argument {.arg x} must be {.cls stslist} (sequence object), a
+    {.cls data.frame} or a {.cls tna_data} object."
   )
-  stopifnot_(
-    inherits(x, "stslist") || inherits(x, "data.frame"),
-    "Argument {.arg x} must be {.cls stslist} (sequence object)
-     or a {.cls data.frame}."
-  )
-  group_len <- length(group)
-  stopifnot_(
-    group_len == nrow(x),
-    "Argument {.arg group} must have the same length as number of
-     rows/sequences in {.arg x}."
-  )
-  if (!is.factor(group)) {
-    group <- factor(group)
+  if (inherits(x, "tna_data")) {
+    wide <- cbind(x$sequence_data, x$meta_data)
+    cols <- seq_len(ncol(x$sequence_data))
+    x <- wide
+  } else {
+    cols <- ifelse_(missing(cols), seq_len(ncol(x)), cols)
+    check_range(cols, type = "integer", scalar = FALSE, min = 1L, max = ncol(x))
   }
+  type <- check_model_type(type)
+  scaling <- check_model_scaling(scaling)
+  group_len <- length(group)
+  data <- NULL
+  stopifnot_(
+    group_len == nrow(x) || group_len == 1L,
+    "Argument {.arg group} must be of length one or the same length as the
+     number of rows/sequences in {.arg x}."
+  )
+  group_var <- ".group"
+  prefix <- "Argument"
+  if (group_len == 1L) {
+    stopifnot_(
+      group %in% names(x),
+      "Argument {.arg group} must be a column name of {.arg x}
+       when of length one."
+    )
+    group_var <- group
+    group <- x[[group]]
+    prefix <- "Column"
+  }
+  group_na <- any(is.na(group))
+  if (group_na && na.rm) {
+    warning_(
+      c(
+        "{prefix} {.arg group} contains missing values.",
+        `i` = "The corresponding observations will be excluded. You can
+               use {.code na.rm = FALSE} to keep missing values."
+      )
+    )
+  }
+  group <- ifelse_(
+    is.factor(group),
+    group,
+    factor(group)
+  )
+  group <- ifelse_(
+    group_na && !na.rm,
+    addNA(group),
+    group
+  )
   levs <- levels(group)
   n_group <- length(levs)
   clusters <- stats::setNames(
     vector(mode = "list", length = n_group),
     levs
   )
-  for (i in levs) {
-    clusters[[i]] <- build_model(x[group == i, ], ...)
+  groups <- vector(mode = "list", length = n_group)
+  group <- as.integer(group)
+  vals <- sort(unique(unlist(x[, cols])))
+  alphabet <- vals[!is.na(vals)]
+  for (i in seq_along(levs)) {
+    groups[[i]] <- rep(i, sum(group == i, na.rm = TRUE))
+    rows <- which(group == i)
+    d <- create_seqdata(
+      x[rows, ],
+      cols = cols,
+      alphabet = alphabet
+    )
+    model <- initialize_model(d, type, scaling, params)
+    clusters[[levs[i]]] <- build_model_(
+      weights = model$weights,
+      inits = model$inits,
+      labels = model$labels,
+      type = type,
+      scaling = scaling,
+      data = d,
+      params = params
+    )
   }
-  structure(clusters, class = "group_tna")
+  structure(
+    clusters,
+    groups = groups,
+    group_var = group_var,
+    levels = levs,
+    na.rm = na.rm,
+    cols = cols,
+    class = "group_tna"
+  )
 }
 
 #' @export
@@ -76,38 +156,44 @@ group_model.mhmm <- function(x, ...) {
 }
 
 #' @export
-#' @rdname build_model
+#' @rdname group_model
+#' @return An object of class `group_tna` which is a `list` containing one
+#'   element per cluster. Each element is a `tna` object.
 #' @examples
-#' model <- group_tna(engagement, group = gl(2, 100))
+#' model <- group_tna(group_regulation, group = gl(2, 1000))
 #'
-group_tna <- function(x, scaling = character(0L), ...) {
+group_tna <- function(x, ...) {
   check_missing(x)
-  group_model(x = x, type = "relative", scaling = scaling, ...)
+  group_model(x = x, type = "relative", ...)
 }
 
 #' @export
-#' @rdname build_model
+#' @rdname group_model
+#' @return An object of class `group_tna` which is a `list` containing one
+#'   element per cluster. Each element is a `tna` object.
 #' @examples
-#' model <- group_ftna(engagement, group = gl(2, 100))
+#' model <- group_ftna(group_regulation, group = gl(2, 1000))
 #'
-group_ftna <- function(x, scaling = character(0L), ...) {
-  group_model(x = x, type = "frequency", scaling = scaling, ...)
+group_ftna <- function(x, ...) {
+  group_model(x = x, type = "frequency", ...)
 }
 
 #' @export
-#' @rdname build_model
+#' @rdname group_model
+#' @return An object of class `group_tna` which is a `list` containing one
+#'   element per cluster. Each element is a `tna` object.
 #' @examples
-#' model <- group_ctna(engagement, group = gl(2, 100))
+#' model <- group_ctna(group_regulation, group = gl(2, 1000))
 #'
-group_ctna <- function(x, scaling = character(0L), ...) {
-  group_model(x = x, type = "co-occurrence", scaling = scaling, ...)
+group_ctna <- function(x, ...) {
+  group_model(x = x, type = "co-occurrence", ...)
 }
 
 #' Retrieve statistics from a mixture Markov model (MMM)
 #'
 #' @export
 #' @family clusters
-#' @param x An `mhmm` object.
+#' @param x A `mhmm` object.
 #' @param use_t_dist A `logical` value. If `TRUE` (the default), the
 #' t-distribution is used to compute confidence intervals.
 #' @param level A `numeric` value representing the significance level for
@@ -123,7 +209,7 @@ mmm_stats <- function(x, use_t_dist = TRUE, level = 0.05) {
   )
   check_missing(x)
   check_flag(use_t_dist)
-  check_probability(level)
+  check_range(level)
   stopifnot_(
     inherits(x, "mhmm"),
     c(
@@ -190,13 +276,13 @@ mmm_stats <- function(x, use_t_dist = TRUE, level = 0.05) {
 
   # Create a data frame with all results in the desired order
   results <- data.frame(
-    Cluster = cluster_list,
-    Variable = variable_list,
-    Estimate = coef_flat,
+    cluster = cluster_list,
+    variable = variable_list,
+    estimate = coef_flat,
     p_value = p_value,
-    CI_Lower = ci_lower,
-    CI_Upper = ci_upper,
-    Std_Error = se_flat,
+    ci_lower = ci_lower,
+    ci_Upper = ci_upper,
+    std_rrror = se_flat,
     t_value = statistic # or z_value depending on distribution
   )
   rownames(results) <- NULL
@@ -208,7 +294,7 @@ mmm_stats <- function(x, use_t_dist = TRUE, level = 0.05) {
 #' @export
 #' @family clusters
 #' @param x A `group_tna` object.
-#' @param new_names A `vector` containing one name per cluster.
+#' @param new_names A `character` vector containing one name per cluster.
 #' @return A renamed `group_tna` object.
 #' @examples
 #' model <- group_model(engagement_mmm)
@@ -219,8 +305,8 @@ rename_groups <- function(x, new_names) {
   check_missing(new_names)
   check_class(x, "group_tna")
   stopifnot_(
-    is.vector(new_names),
-    "Argument {.arg new_names} must be a vector."
+    is.character(new_names),
+    "Argument {.arg new_names} must be a {.cls character} vector."
   )
   stopifnot_(
     length(new_names) == length(x),

@@ -85,6 +85,24 @@ as.igraph.tna <- function(x, ...) {
   )
 }
 
+#' Coerce a weight matrix to an `igraph` object.
+#'
+#' @export
+#' @inheritParams igraph::as.igraph
+#' @param directed A `logical` value. If `TRUE`, assumes that the graph is
+#' directed and undirected otherwise.
+#' @return An `igraph` object.
+as.igraph.matrix <- function(x, directed = TRUE, ...) {
+  check_missing(x)
+  check_class(x, "matrix")
+  mode <- ifelse_(directed, "directed", "undirected")
+  igraph::graph_from_adjacency_matrix(
+    adjmatrix = x,
+    mode = mode,
+    weighted = TRUE
+  )
+}
+
 #' Coerce  a specific group from a `group_tna` object to an `igraph` object.
 #'
 #' @export
@@ -100,6 +118,26 @@ as.igraph.group_tna <- function(x, which, ...) {
     "There is no group named {which}."
   )
   as.igraph(x[[which]])
+}
+
+#' Log-sum-exp function
+#'
+#' @param x A `numeric` vector.
+#' @noRd
+log_sum_exp <- function(x) {
+  n <- length(x)
+  L <- x[1]
+  for (i in seq_len(n - 1)) {
+    L <- max(x[i + 1], L) + log1p(exp(-abs(x[i + 1] - L)))
+  }
+  L
+}
+
+# Define the null coalescing operator for older R versions
+if (base::getRversion() < "4.4.0") {
+  `%||%` <- function(x, y) {
+    if (is.null(x)) y else x
+  }
 }
 
 # Functions borrowed from the `dynamite` package --------------------------
@@ -141,6 +179,16 @@ warning_ <- function(message, ...) {
   cli::cli_warn(message, ..., .envir = parent.frame())
 }
 
+#' Stop Function Execution Without Displaying the Call
+#'
+#' @param message See [cli::cli_abort()].
+#' @param ... See [cli::cli_abort()].
+#' @param call See [cli::cli_abort()].
+#' @noRd
+stop_ <- function(message, ..., call = rlang::caller_env()) {
+  cli::cli_abort(message, ..., .envir = parent.frame(), call = call)
+}
+
 #' Stop function execution unless a condition is true
 #'
 #' @param message See [cli::cli_abort()].
@@ -151,6 +199,15 @@ stopifnot_ <- function(cond, message, ..., call = rlang::caller_env()) {
   if (!cond) {
     cli::cli_abort(message, ..., .envir = parent.frame(), call = call)
   }
+}
+
+#' Generate an Informative Message
+#'
+#' @param message See [cli::cli_inform()]
+#' @param ... See [cli::cli_inform()]
+#' @noRd
+message_ <- function(message, ...) {
+  cli::cli_inform(message, ..., .envir = parent.frame())
 }
 
 #' Create a Comma-separated Character String
