@@ -58,54 +58,50 @@ is_tna <- function(x) {
   inherits(x, "tna")
 }
 
-#' Check that argument is an object of class `tna_centralities`
-#'
-#' @param x An \R object.
-#' @noRd
-is_tna_centralities <- function(x) {
-  inherits(x, "tna_centralities")
-}
-
 #' @importFrom igraph as.igraph
 #' @export
 igraph::as.igraph
 
-#' Coerce a `tna` object to an `igraph` object.
+#' Coerce a `tna` Object into an `igraph` Object.
 #'
 #' @export
-#' @inheritParams igraph::as.igraph
+#' @family helpers
+#' @inheritParams igraph::graph_from_adjacency_matrix
+#' @param x A `tna` object.
+#' @param ... Ignored.
 #' @return An `igraph` object.
-as.igraph.tna <- function(x, ...) {
+as.igraph.tna <- function(x, mode = "directed", ...) {
   check_missing(x)
   check_class(x, "tna")
   igraph::graph_from_adjacency_matrix(
     adjmatrix = x$weights,
-    mode = "directed",
-    weighted = TRUE
-  )
-}
-
-#' Coerce a weight matrix to an `igraph` object.
-#'
-#' @export
-#' @inheritParams igraph::as.igraph
-#' @param directed A `logical` value. If `TRUE`, assumes that the graph is
-#' directed and undirected otherwise.
-#' @return An `igraph` object.
-as.igraph.matrix <- function(x, directed = TRUE, ...) {
-  check_missing(x)
-  check_class(x, "matrix")
-  mode <- ifelse_(directed, "directed", "undirected")
-  igraph::graph_from_adjacency_matrix(
-    adjmatrix = x,
     mode = mode,
     weighted = TRUE
   )
 }
 
-#' Coerce  a specific group from a `group_tna` object to an `igraph` object.
+#' Coerce a Weight Matrix into an `igraph` Object.
 #'
 #' @export
+#' @family helpers
+#' @inheritParams igraph::graph_from_adjacency_matrix
+#' @param x A `matrix` of edge weights.
+#' @param ... Ignored.
+#' @return An `igraph` object.
+as.igraph.matrix <- function(x, mode = "directed", ...) {
+  check_missing(x)
+  check_class(x, "matrix")
+  igraph::graph_from_adjacency_matrix(
+    adjmatrix = x,
+    mode = mode,
+    weighted = TRUE,
+  )
+}
+
+#' Coerce a Specific Group from a `group_tna` Object into an `igraph` Object.
+#'
+#' @export
+#' @family helpers
 #' @inheritParams igraph::as.igraph
 #' @param which The number or name of the group.
 #' @return An `igraph` object.

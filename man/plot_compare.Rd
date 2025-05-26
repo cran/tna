@@ -3,23 +3,37 @@
 \name{plot_compare}
 \alias{plot_compare}
 \alias{plot_compare.tna}
-\title{Plot the difference network between two models}
+\title{Plot the Difference Network Between Two Models}
 \usage{
 plot_compare(x, ...)
 
-\method{plot_compare}{tna}(x, y, theme = NULL, palette = "colorblind", ...)
+\method{plot_compare}{tna}(
+  x,
+  y,
+  theme = NULL,
+  palette = "colorblind",
+  posCol = "#009900",
+  negCol = "red",
+  ...
+)
 }
 \arguments{
-\item{x}{A \code{tna} object. It will be the principal model.}
+\item{x}{A \code{tna} object. This is the the principal model.}
 
 \item{...}{Additional arguments passed to \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
 
-\item{y}{A \code{tna} object. It will be the model subtracted from the
+\item{y}{A \code{tna} object. This is the model subtracted from the
 principal model.}
 
 \item{theme}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
 
 \item{palette}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
+
+\item{posCol}{Color for plotting edges and pie when
+the first group has a higher value. See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
+
+\item{negCol}{Color for plotting edges and pie when
+the second group has a higher value. See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
 }
 \value{
 A \code{qgraph} object displaying the difference network between the
@@ -38,10 +52,11 @@ plot_compare(model_x, model_y)
 
 }
 \seealso{
-Core functions
-\code{\link{build_model}()},
-\code{\link{centralities}()},
-\code{\link{plot.tna}()},
-\code{\link{plot.tna_centralities}()}
+Model comparison functions
+\code{\link{compare}()},
+\code{\link{compare.group_tna}()},
+\code{\link{plot.tna_comparison}()},
+\code{\link{plot_compare.group_tna}()},
+\code{\link{print.tna_comparison}()}
 }
-\concept{core}
+\concept{comparison}

@@ -2,15 +2,18 @@
 % Please edit documentation in R/plot.R
 \name{plot.group_tna}
 \alias{plot.group_tna}
-\title{Plot a grouped Transition Network Analysis Model}
+\title{Plot a Grouped Transition Network Analysis Model}
 \usage{
-\method{plot}{group_tna}(x, title, ...)
+\method{plot}{group_tna}(x, title, which, ...)
 }
 \arguments{
 \item{x}{A \code{group_model} object.}
 
 \item{title}{A title for each plot. It can be a single string (the same one
 will be used for all plots) or a list (one per group)}
+
+\item{which}{An optional \code{integer} vector of groups to plot. By default, all
+groups are plotted.}
 
 \item{...}{Same as \code{\link[=plot.tna]{plot.tna()}}.}
 }
@@ -26,36 +29,26 @@ plot(model)
 
 }
 \seealso{
-Cluster-related functions
-\code{\link{bootstrap}()},
-\code{\link{centralities}()},
-\code{\link{cliques}()},
-\code{\link{communities}()},
-\code{\link{deprune}()},
-\code{\link{estimate_cs}()},
-\code{\link{group_model}()},
+Basic functions
+\code{\link{build_model}()},
 \code{\link{hist.group_tna}()},
-\code{\link{mmm_stats}()},
-\code{\link{plot.group_tna_centralities}()},
-\code{\link{plot.group_tna_cliques}()},
-\code{\link{plot.group_tna_communities}()},
-\code{\link{plot.group_tna_stability}()},
-\code{\link{plot_compare.group_tna}()},
+\code{\link{hist.tna}()},
+\code{\link{import_data}()},
+\code{\link{plot.tna}()},
+\code{\link{plot_frequencies}()},
+\code{\link{plot_frequencies.group_tna}()},
+\code{\link{plot_mosaic}()},
 \code{\link{plot_mosaic.group_tna}()},
 \code{\link{plot_mosaic.tna_data}()},
+\code{\link{prepare_data}()},
 \code{\link{print.group_tna}()},
-\code{\link{print.group_tna_bootstrap}()},
-\code{\link{print.group_tna_centralities}()},
-\code{\link{print.group_tna_cliques}()},
-\code{\link{print.group_tna_communities}()},
-\code{\link{print.group_tna_stability}()},
 \code{\link{print.summary.group_tna}()},
-\code{\link{print.summary.group_tna_bootstrap}()},
-\code{\link{prune}()},
-\code{\link{pruning_details}()},
-\code{\link{rename_groups}()},
-\code{\link{reprune}()},
+\code{\link{print.summary.tna}()},
+\code{\link{print.tna}()},
+\code{\link{print.tna_data}()},
+\code{\link{simulate.tna}()},
 \code{\link{summary.group_tna}()},
-\code{\link{summary.group_tna_bootstrap}()}
+\code{\link{summary.tna}()},
+\code{\link{tna-package}}
 }
-\concept{clusters}
+\concept{basic}

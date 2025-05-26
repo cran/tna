@@ -34,7 +34,7 @@
 #'     cluster together.
 #'
 #' @export
-#' @family core
+#' @family centralities
 #' @rdname centralities
 #' @param x A `tna` object, a `group_tna` object, or
 #' a square `matrix` representing edge weights.
@@ -105,16 +105,12 @@ centralities_ <- function(x, loops, normalize, measures) {
   check_flag(normalize)
   measures <- ifelse_(
     missing(measures),
-    available_centrality_measures,
+    names(centrality_funs),
     measures
   )
   measures <- check_measures(measures)
   diag(x) <- ifelse_(loops, diag(x), 0)
-  g <- igraph::graph_from_adjacency_matrix(
-    adjmatrix = x,
-    mode = "directed",
-    weighted = TRUE
-  )
+  g <- as.igraph(x)
   measures_out <- lapply(
     measures,
     function(y) {
@@ -181,6 +177,7 @@ estimate_centrality_stability <- estimate_cs
 #' subtitle.
 #'
 #' @export
+#' @family validation
 #' @rdname estimate_centrality_stability
 #' @param x A `tna` or a `group_tna` object representing the temporal network
 #' analysis data. The object should be created from a sequence data object.
@@ -203,9 +200,6 @@ estimate_centrality_stability <- estimate_cs
 #' calculating the CS-coefficient. The default is 0.7.
 #' @param certainty A `numeric` value specifying the desired level of certainty
 #' for the CS-coefficient. Default is 0.95.
-#' @param detailed A `logical` value specifying whether to return detailed
-#' sampling results. If `TRUE`, detailed results are included in the output.
-#' The default is `FALSE`.
 #' @param progressbar A `logical` value. If `TRUE`, a progress bar is displayed
 #' Defaults to `FALSE`
 #' @param ... Ignored.
@@ -217,8 +211,6 @@ estimate_centrality_stability <- estimate_cs
 #'   of the measure.
 #' * `correlations`: A `matrix` of correlations between the original
 #'   centrality and the resampled centralities for each drop proportion.
-#' * `detailed_results`: A detailed data frame of the sampled correlations,
-#'   returned only if `return_detailed = TRUE`
 #'
 #' If `x` is a `group_tna` object, a `group_tna_stability` object is returned
 #' instead, which is a `list` of `tna_stability` objects.
@@ -238,14 +230,12 @@ estimate_cs.tna <- function(x, loops = FALSE, normalize = FALSE,
                               "InStrength", "OutStrength", "Betweenness"
                             ), iter = 1000, method = "pearson",
                             drop_prop = seq(0.1, 0.9, by = 0.1),
-                            threshold = 0.7,
-                            certainty = 0.95, detailed = FALSE,
+                            threshold = 0.7, certainty = 0.95,
                             progressbar = FALSE, ...) {
   check_tna_seq(x)
   check_flag(loops)
   check_flag(normalize)
   check_flag(progressbar)
-  check_flag(detailed)
   check_values(iter, strict = TRUE)
   check_range(threshold)
   check_range(certainty)
@@ -284,7 +274,10 @@ estimate_cs.tna <- function(x, loops = FALSE, normalize = FALSE,
   )
   names(stability) <- measures
   if (progressbar) {
-    pb <- utils::txtProgressBar(min = 0, max = n_prop * iter, style = 3)
+    cli::cli_progress_bar(
+      name = "Computing centrality stability",
+      total = n_prop * iter
+    )
   }
   for (i in seq_len(n_prop)) {
     prop <- drop_prop[i]
@@ -333,7 +326,7 @@ estimate_cs.tna <- function(x, loops = FALSE, normalize = FALSE,
         numeric(1L)
       )
       if (progressbar) {
-        utils::setTxtProgressBar(pb, (i - 1) * iter + j)
+        cli::cli_progress_update()
       }
     }
     for (k in seq_len(n_measures)) {
@@ -341,11 +334,7 @@ estimate_cs.tna <- function(x, loops = FALSE, normalize = FALSE,
       stability[[measure]][, i] <- corr_prop[, k]
     }
   }
-  if (progressbar) {
-    close(pb)
-  }
   out <- list()
-  # TODO handle all NA case?
   for (measure in measures) {
     cs_coef <- calculate_cs(
       stability[[measure]],
@@ -357,6 +346,9 @@ estimate_cs.tna <- function(x, loops = FALSE, normalize = FALSE,
       cs_coefficient = cs_coef,
       correlations = stability[[measure]]
     )
+  }
+  if (progressbar) {
+    cli::cli_process_done()
   }
   structure(
     out,
@@ -428,7 +420,6 @@ wcc <- function(mat) {
 # Clusters ----------------------------------------------------------------
 
 #' @export
-#' @family clusters
 #' @rdname centralities
 centralities.group_tna <- function(x, loops = FALSE,
                                    normalize = FALSE, measures, ...) {
@@ -437,7 +428,7 @@ centralities.group_tna <- function(x, loops = FALSE,
   # missing() does not work with lapply, need to evaluate measures here.
   measures <- ifelse_(
     missing(measures),
-    available_centrality_measures,
+    names(centrality_funs),
     measures
   )
   out <- dplyr::bind_rows(
@@ -464,7 +455,6 @@ centralities.group_tna <- function(x, loops = FALSE,
 }
 
 #' @export
-#' @family clusters
 #' @rdname estimate_centrality_stability
 estimate_cs.group_tna <- function(x, loops = FALSE, normalize = FALSE,
                                   measures = c(
@@ -472,7 +462,7 @@ estimate_cs.group_tna <- function(x, loops = FALSE, normalize = FALSE,
                                   ), iter = 1000, method = "pearson",
                                   drop_prop = seq(0.1, 0.9, by = 0.1),
                                   threshold = 0.7, certainty = 0.95,
-                                  detailed = FALSE, progressbar = FALSE, ...) {
+                                  progressbar = FALSE, ...) {
   check_missing(x)
   check_class(x, "group_tna")
   structure(
@@ -489,7 +479,6 @@ estimate_cs.group_tna <- function(x, loops = FALSE, normalize = FALSE,
           drop_prop = drop_prop,
           threshold = threshold,
           certainty = certainty,
-          detailed = detailed,
           progressbar = progressbar,
           ...
         )
@@ -500,22 +489,8 @@ estimate_cs.group_tna <- function(x, loops = FALSE, normalize = FALSE,
 }
 
 #' @export
-#' @family clusters
 #' @rdname estimate_centrality_stability
 estimate_centrality_stability.group_tna <- estimate_cs.group_tna
-
-# Available centrality measures -----------------------------------------------
-available_centrality_measures <- c(
-  "OutStrength",
-  "InStrength",
-  "ClosenessIn",
-  "ClosenessOut",
-  "Closeness",
-  "Betweenness",
-  "BetweennessRSP",
-  "Diffusion",
-  "Clustering"
-)
 
 # Centrality measure function wrappers ----------------------------------------
 

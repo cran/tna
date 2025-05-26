@@ -7,6 +7,7 @@
 #' the differences.
 #'
 #' @export
+#' @family comparison
 #' @param x A `tna` object or a `matrix` of weights.
 #' @param y A `tna` object or a `matrix` of weights.
 #' @param scaling A  `character` string naming a scaling method to
@@ -78,6 +79,7 @@ compare.matrix <- function(x, y, scaling = "none", ...) {
 #' Compare TNA Clusters with Comprehensive Metrics
 #'
 #' @export
+#' @family comparison
 #' @param x A `group_tna` object.
 #' @param i An `integer` index or the name of the principal cluster as a
 #' `character` string.
@@ -185,7 +187,7 @@ compare_ <- function(x, y, scaling = "none", ...) {
     abs(rank(x_vec, na.last = "keep") - rank(y_vec, na.last = "keep"))
   edges_combined$percentile_difference <-
     abs(stats::ecdf(x_vec)(x_vec) - stats::ecdf(y_vec)(y_vec))
-  edges_combined$logarithmic_ratio = log1p(x_vec) - log1p(y_vec)
+  edges_combined$logarithmic_ratio <- log1p(x_vec) - log1p(y_vec)
   edges_combined$standardized_weight_x <- (x_vec - mean(x)) / stats::sd(x)
   edges_combined$standardized_weight_y <- (y_vec - mean(y)) / stats::sd(y)
   edges_combined$standardized_score_inflation <-
@@ -226,7 +228,6 @@ compare_ <- function(x, y, scaling = "none", ...) {
     metric = c(
       "Euclidean",
       "Manhattan",
-      "Chebyshev",
       "Canberra",
       "Bray-Curtis",
       "Frobenius"
@@ -234,7 +235,6 @@ compare_ <- function(x, y, scaling = "none", ...) {
     value = c(
       sqrt(sum(abs_diff^2)),
       sum(abs_diff),
-      max(abs_diff),
       sum(abs_diff[pos] / (abs_x[pos] + abs_y[pos])),
       sum(abs_diff) / sum(abs_x + abs_y),
       sqrt(sum(abs_diff^2)) / sqrt(n / 2)
@@ -242,13 +242,12 @@ compare_ <- function(x, y, scaling = "none", ...) {
   )
   similarities <- data.frame(
     category = "Similarities",
-    metric = c("Cosine", "Jaccard", "Dice", "Overlap", "Frobenius", "RV"),
+    metric = c("Cosine", "Jaccard", "Dice", "Overlap", "RV"),
     value = c(
       sum(x * y) / (sqrt(sum(x^2)) * sqrt(sum(y^2))),
       sum(pmin(abs_x, abs_y)) / sum(pmax(abs_x, abs_y)),
       2 * sum(pmin(abs_x, abs_y)) / (sum(abs_x) + sum(abs_y)),
       sum(pmin(abs_x, abs_y)) / min(sum(abs_x), sum(abs_y)),
-      1.0 / (1.0 + sqrt(sum(abs_diff^2)) / sqrt(n / 2)),
       rv_coefficient(x, y)
     )
   )

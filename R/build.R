@@ -7,7 +7,7 @@
 #' matrices and initial state probabilities directly.
 #'
 #' @export
-#' @family core
+#' @family basic
 #' @rdname build_model
 #' @param x A `stslist` (from `TraMineR`), `data.frame`, a `matrix`, or
 #'   a `tna_data` object (see [prepare_data()]).
@@ -36,6 +36,9 @@
 #'       (resulting in what is called a reply network in some contexts).
 #'       The resulting weight matrix is the transpose of the `"frequency"`
 #'       option.
+#'   * `"attention"` aggregates all downstream pairs of states with an
+#'       exponential decay for the gap between states. The parameter `lambda`
+#'       can be used to control the decay rate (the default is 1)-
 #'
 #' @param scaling A `character` vector describing how to scale the weights
 #'   defined by `type`. When a vector is provided, the scaling options are
@@ -69,8 +72,10 @@
 #'      are weighted by the inverse of the sequence length. Can be used for
 #'      frequency, co-occurrence and reverse model types. The default is
 #'      `FALSE`.
+#'   * `lambda`: A `numeric` value for the decay rate. The default is 1.
 #'
-#' @param ... Ignored.
+#' @param ... Ignored. For the `build_model` aliases (e.g., `tna`), this
+#' argument matches the actual arguments to `build_model` beside `x`.
 #' @return An object of class `tna` which is a `list` containing the
 #'   following elements:
 #'
@@ -107,7 +112,6 @@ build_model.default <- function(x, type = "relative", scaling = character(0L),
 }
 
 #' @export
-#'
 #' @rdname build_model
 build_model.matrix <- function(x, type = "relative", scaling = character(0L),
                                inits, ...) {
@@ -245,18 +249,6 @@ build_model.tna_data <- function(x, type = "relative", scaling = character(0),
 
 #' @export
 #' @rdname build_model
-#' @return An object of class `tna` which is a `list` containing the
-#'   following elements:
-#'
-#'   * `weights`: An adjacency `matrix` of the model (weight matrix).
-#'   * `inits`: A `numeric` vector of initial values for each state.
-#'     For `matrix` type `x`, this element will be `NULL` if `inits` is not
-#'     directly provided
-#'   * `labels`: A `character` vector of the state labels, or `NULL` if
-#'     there are no labels.
-#'   * `data`: The original sequence data that has been converted to an
-#'     internal format used by the package when `x` is a `stslist` or a
-#'     `data.frame` object. Otherwise `NULL`.
 #' @examples
 #' model <- tna(group_regulation)
 #'
@@ -267,18 +259,6 @@ tna <- function(x, ...) {
 
 #' @export
 #' @rdname build_model
-#' @return An object of class `tna` which is a `list` containing the
-#'   following elements:
-#'
-#'   * `weights`: An adjacency `matrix` of the model (weight matrix).
-#'   * `inits`: A `numeric` vector of initial values for each state.
-#'     For `matrix` type `x`, this element will be `NULL` if `inits` is not
-#'     directly provided
-#'   * `labels`: A `character` vector of the state labels, or `NULL` if
-#'     there are no labels.
-#'   * `data`: The original sequence data that has been converted to an
-#'     internal format used by the package when `x` is a `stslist` or a
-#'     `data.frame` object. Otherwise `NULL`.
 #' @examples
 #' model <- ftna(group_regulation)
 #'
@@ -288,24 +268,20 @@ ftna <- function(x, ...) {
 
 #' @export
 #' @rdname build_model
-#' @return An object of class `tna` which is a `list` containing the
-#'   following elements:
-#'
-#'   * `weights`: An adjacency `matrix` of the model (weight matrix).
-#'   * `inits`: A `numeric` vector of initial values for each state.
-#'     For `matrix` type `x`, this element will be `NULL` if `inits` is not
-#'     directly provided
-#'   * `labels`: A `character` vector of the state labels, or `NULL` if
-#'     there are no labels.
-#'   * `data`: The original sequence data that has been converted to an
-#'     internal format used by the package when `x` is a `stslist` or a
-#'     `data.frame` object. Otherwise `NULL`.
-#'
 #' @examples
 #' model <- ctna(group_regulation)
 #'
 ctna <- function(x, ...) {
   build_model(x = x, type = "co-occurrence", ...)
+}
+
+#' @export
+#' @rdname build_model
+#' @examples
+#' model <- atna(group_regulation)
+#'
+atna <- function(x, ...) {
+  build_model(x = x, type = "attention", ...)
 }
 
 
@@ -329,7 +305,6 @@ build_model_ <- function(weights, inits = NULL, labels = NULL,
   structure(
     list(
       weights = weights,
-      # TODO can inits be missing?
       inits = onlyif(!missing(inits), inits),
       labels = labels,
       data = data
@@ -384,12 +359,12 @@ create_seqdata <- function(x, cols, alphabet) {
     )
   )
   structure(
-    x,
-    class = "data.frame",
+    as.matrix(x[, cols]),
+    class = c("matrix", "array"),
     alphabet = alphabet,
     labels = labels,
-    colors = colors,
-    cols = cols
+    colors = colors#,
+    #cols = cols
   )
 }
 
@@ -405,12 +380,12 @@ create_seqdata <- function(x, cols, alphabet) {
 initialize_model <- function(x, type, scaling, params, transitions = FALSE) {
   alphabet <- attr(x, "alphabet")
   labels <- attr(x, "labels")
-  cols <- attr(x, "cols")
-  m <- as.matrix(x[, cols])
+  #cols <- attr(x, "cols")
+  #m <- as.matrix(x[, cols])
   a <- length(alphabet)
-  inits <- factor(m[, 1L], levels = seq_len(a), labels = alphabet)
+  inits <- factor(x[, 1L], levels = seq_len(a), labels = alphabet)
   inits <- as.vector(table(inits))
-  trans <- compute_transitions(m, a, type, params)
+  trans <- compute_transitions(x, a, type, params)
   weights <- compute_weights(trans, type, scaling, a)
   inits <- inits / sum(inits)
   names(inits) <- alphabet
@@ -454,8 +429,7 @@ compute_transitions <- function(m, a, type, params) {
       new_trans <- cbind(idx, from, to)[!any_na, , drop = FALSE]
       trans[new_trans] <- trans[new_trans] + weight[!any_na]
     }
-  }
-  else if (type == "co-occurrence") {
+  } else if (type == "co-occurrence") {
     for (i in seq_len(p - 1L)) {
       for (j in seq(i + 1L, p)) {
         from <- m[, i]
@@ -504,6 +478,17 @@ compute_transitions <- function(m, a, type, params) {
         }
       }
     }
+  } else if (type == "attention") {
+    lambda <- params$lambda %||% 1.0
+    for (i in seq_len(p - 1L)) {
+      for (j in seq(i + 1L, p)) {
+        from <- m[, i]
+        to <- m[, j]
+        any_na <- is.na(from) | is.na(to)
+        new_trans <- cbind(idx, from, to)[!any_na, , drop = FALSE]
+        trans[new_trans] <- trans[new_trans] + exp((i - j) / lambda)
+      }
+    }
   }
   trans
 }
@@ -550,11 +535,13 @@ scale_weights <- function(weights, type, scaling, a) {
 
 #' Get Network Node Count
 #'
-#' @param x A `tna` object or a weight `matrix`.
+#' @param x A `tna` or a `group_tna` object, or a weight `matrix`.
 #' @noRd
 nodes <- function(x) {
   if (is_tna(x)) {
     dim(x$weights)[2L]
+  } else if (inherits(x, "group_tna")) {
+    dim(x[[1L]]$weights)[2L]
   } else {
     ncol(x)
   }

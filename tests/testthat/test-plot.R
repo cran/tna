@@ -14,6 +14,16 @@ test_that("histogram of edge weights can be plotted", {
   )
 })
 
+test_that("bootstrapped model can be plotted", {
+  set.seed(0)
+  model <- tna(group_regulation)
+  boot <- bootstrap(model, iter = 50)
+  expect_error(
+    plot.tna_bootstrap(boot),
+    NA
+  )
+})
+
 test_that("centralities can be plotted", {
   cm <- centralities(mock_tna)
   pdf(NULL)
@@ -70,17 +80,25 @@ test_that("permutation test significant edges can be plotted", {
   )
 })
 
+test_that("permutation test significant edges can be plotted with groups", {
+  perm <- permutation_test(mmm_model, iter = 20)
+  pdf(NULL)
+  expect_error(
+    plot.group_tna_permutation(perm),
+    NA
+  )
+})
+
 test_that("model comparison can be plotted", {
   model_x <- tna(engagement[engagement[, 1] == "Active", ])
   model_y <- tna(engagement[engagement[, 1] != "Active", ])
-  model_grouped <- group_tna(engagement_mmm)
   pdf(NULL)
   expect_error(
     plot_compare(model_x, model_y),
     NA
   )
   expect_error(
-    plot_compare(model_grouped),
+    plot_compare(mmm_model),
     NA
   )
 })
@@ -89,6 +107,13 @@ test_that("edge weight matrix can be plotted", {
   pdf(NULL)
   expect_error(
     plot_model(mock_matrix),
+    NA
+  )
+})
+
+test_that("frequencies can be plotted", {
+  expect_error(
+    plot_frequencies(mock_tna_seq),
     NA
   )
 })
@@ -151,6 +176,15 @@ test_that("group model can be plotted", {
   )
   expect_error(
     plot(mmm_model, title = "Clusters"),
+    NA
+  )
+})
+
+test_that("bootstrapped model can be plotted for clusters", {
+  set.seed(0)
+  boot <- bootstrap(mmm_model, iter = 50)
+  expect_error(
+    plot(boot),
     NA
   )
 })
@@ -251,6 +285,21 @@ test_that("mosaic can be plotted", {
   )
   expect_error(
     plot_mosaic(mock_tna_data, group = "group"),
+    NA
+  )
+})
+
+test_that("permutation test results can be plotted for clusters", {
+  perm <- permutation_test(mmm_model, iter = 50)
+  expect_error(
+    plot(perm),
+    NA
+  )
+})
+
+test_that("frequencies can be plotted for clusters", {
+  expect_error(
+    plot_frequencies(mmm_model),
     NA
   )
 })

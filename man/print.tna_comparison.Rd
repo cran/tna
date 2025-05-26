@@ -24,3 +24,12 @@ comp <- compare(model_x, model_y)
 print(comp)
 
 }
+\seealso{
+Model comparison functions
+\code{\link{compare}()},
+\code{\link{compare.group_tna}()},
+\code{\link{plot.tna_comparison}()},
+\code{\link{plot_compare}()},
+\code{\link{plot_compare.group_tna}()}
+}
+\concept{comparison}

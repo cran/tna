@@ -9,8 +9,9 @@
   labels,
   colors,
   pie,
+  cut,
   show_pruned = TRUE,
-  pruned_edge_color = "red",
+  pruned_edge_color = "pink",
   edge.color = NA,
   edge.labels = TRUE,
   edge.label.position = 0.65,
@@ -30,12 +31,15 @@
 
 \item{pie}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
 
+\item{cut}{Edge color and width emphasis cutoff value. The default is
+the median of the edge weights. See \code{\link[qgraph:qgraph]{qgraph::qgraph()}} for details.}
+
 \item{show_pruned}{A \code{logical} value indicating if pruned edges removed by
 \code{\link[=prune]{prune()}} should be shown in the plot.  The default is \code{TRUE}, and the
 edges are drawn as dashed with a different color to distinguish them.}
 
 \item{pruned_edge_color}{A \code{character} string for the color to use for
-pruned edges when \code{show_pruned = TRUE}. The default is \code{"red"}.}
+pruned edges when \code{show_pruned = TRUE}. The default is \code{"pink"}.}
 
 \item{edge.color}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
 
@@ -75,10 +79,26 @@ plot(model)
 
 }
 \seealso{
-Core functions
+Basic functions
 \code{\link{build_model}()},
-\code{\link{centralities}()},
-\code{\link{plot.tna_centralities}()},
-\code{\link{plot_compare}()}
+\code{\link{hist.group_tna}()},
+\code{\link{hist.tna}()},
+\code{\link{import_data}()},
+\code{\link{plot.group_tna}()},
+\code{\link{plot_frequencies}()},
+\code{\link{plot_frequencies.group_tna}()},
+\code{\link{plot_mosaic}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
+\code{\link{prepare_data}()},
+\code{\link{print.group_tna}()},
+\code{\link{print.summary.group_tna}()},
+\code{\link{print.summary.tna}()},
+\code{\link{print.tna}()},
+\code{\link{print.tna_data}()},
+\code{\link{simulate.tna}()},
+\code{\link{summary.group_tna}()},
+\code{\link{summary.tna}()},
+\code{\link{tna-package}}
 }
-\concept{core}
+\concept{basic}

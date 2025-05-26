@@ -23,7 +23,6 @@ estimate_centrality_stability(x, ...)
   drop_prop = seq(0.1, 0.9, by = 0.1),
   threshold = 0.7,
   certainty = 0.95,
-  detailed = FALSE,
   progressbar = FALSE,
   ...
 )
@@ -38,7 +37,6 @@ estimate_centrality_stability(x, ...)
   drop_prop = seq(0.1, 0.9, by = 0.1),
   threshold = 0.7,
   certainty = 0.95,
-  detailed = FALSE,
   progressbar = FALSE,
   ...
 )
@@ -53,7 +51,6 @@ estimate_centrality_stability(x, ...)
   drop_prop = seq(0.1, 0.9, by = 0.1),
   threshold = 0.7,
   certainty = 0.95,
-  detailed = FALSE,
   progressbar = FALSE,
   ...
 )
@@ -68,7 +65,6 @@ estimate_centrality_stability(x, ...)
   drop_prop = seq(0.1, 0.9, by = 0.1),
   threshold = 0.7,
   certainty = 0.95,
-  detailed = FALSE,
   progressbar = FALSE,
   ...
 )
@@ -106,10 +102,6 @@ calculating the CS-coefficient. The default is 0.7.}
 \item{certainty}{A \code{numeric} value specifying the desired level of certainty
 for the CS-coefficient. Default is 0.95.}
 
-\item{detailed}{A \code{logical} value specifying whether to return detailed
-sampling results. If \code{TRUE}, detailed results are included in the output.
-The default is \code{FALSE}.}
-
 \item{progressbar}{A \code{logical} value. If \code{TRUE}, a progress bar is displayed
 Defaults to \code{FALSE}}
 }
@@ -121,8 +113,6 @@ A \code{tna_stability} object which is a \code{list} with an element for each
 of the measure.
 \item \code{correlations}: A \code{matrix} of correlations between the original
 centrality and the resampled centralities for each drop proportion.
-\item \code{detailed_results}: A detailed data frame of the sampled correlations,
-returned only if \code{return_detailed = TRUE}
 }
 
 If \code{x} is a \code{group_tna} object, a \code{group_tna_stability} object is returned
@@ -160,68 +150,29 @@ estimate_cs(
 
 }
 \seealso{
-Cluster-related functions
+Validation functions
 \code{\link{bootstrap}()},
-\code{\link{centralities}()},
-\code{\link{cliques}()},
-\code{\link{communities}()},
 \code{\link{deprune}()},
-\code{\link{group_model}()},
-\code{\link{hist.group_tna}()},
-\code{\link{mmm_stats}()},
-\code{\link{plot.group_tna}()},
-\code{\link{plot.group_tna_centralities}()},
-\code{\link{plot.group_tna_cliques}()},
-\code{\link{plot.group_tna_communities}()},
+\code{\link{permutation_test}()},
+\code{\link{permutation_test.group_tna}()},
+\code{\link{plot.group_tna_bootstrap}()},
+\code{\link{plot.group_tna_permutation}()},
 \code{\link{plot.group_tna_stability}()},
-\code{\link{plot_compare.group_tna}()},
-\code{\link{plot_mosaic.group_tna}()},
-\code{\link{plot_mosaic.tna_data}()},
-\code{\link{print.group_tna}()},
+\code{\link{plot.tna_bootstrap}()},
+\code{\link{plot.tna_permutation}()},
+\code{\link{plot.tna_stability}()},
 \code{\link{print.group_tna_bootstrap}()},
-\code{\link{print.group_tna_centralities}()},
-\code{\link{print.group_tna_cliques}()},
-\code{\link{print.group_tna_communities}()},
+\code{\link{print.group_tna_permutation}()},
 \code{\link{print.group_tna_stability}()},
-\code{\link{print.summary.group_tna}()},
 \code{\link{print.summary.group_tna_bootstrap}()},
+\code{\link{print.summary.tna_bootstrap}()},
+\code{\link{print.tna_bootstrap}()},
+\code{\link{print.tna_permutation}()},
+\code{\link{print.tna_stability}()},
 \code{\link{prune}()},
 \code{\link{pruning_details}()},
-\code{\link{rename_groups}()},
 \code{\link{reprune}()},
-\code{\link{summary.group_tna}()},
-\code{\link{summary.group_tna_bootstrap}()}
-
-Cluster-related functions
-\code{\link{bootstrap}()},
-\code{\link{centralities}()},
-\code{\link{cliques}()},
-\code{\link{communities}()},
-\code{\link{deprune}()},
-\code{\link{group_model}()},
-\code{\link{hist.group_tna}()},
-\code{\link{mmm_stats}()},
-\code{\link{plot.group_tna}()},
-\code{\link{plot.group_tna_centralities}()},
-\code{\link{plot.group_tna_cliques}()},
-\code{\link{plot.group_tna_communities}()},
-\code{\link{plot.group_tna_stability}()},
-\code{\link{plot_compare.group_tna}()},
-\code{\link{plot_mosaic.group_tna}()},
-\code{\link{plot_mosaic.tna_data}()},
-\code{\link{print.group_tna}()},
-\code{\link{print.group_tna_bootstrap}()},
-\code{\link{print.group_tna_centralities}()},
-\code{\link{print.group_tna_cliques}()},
-\code{\link{print.group_tna_communities}()},
-\code{\link{print.group_tna_stability}()},
-\code{\link{print.summary.group_tna}()},
-\code{\link{print.summary.group_tna_bootstrap}()},
-\code{\link{prune}()},
-\code{\link{pruning_details}()},
-\code{\link{rename_groups}()},
-\code{\link{reprune}()},
-\code{\link{summary.group_tna}()},
-\code{\link{summary.group_tna_bootstrap}()}
+\code{\link{summary.group_tna_bootstrap}()},
+\code{\link{summary.tna_bootstrap}()}
 }
-\concept{clusters}
+\concept{validation}

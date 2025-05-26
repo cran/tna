@@ -1,4 +1,4 @@
-#' Prune a `tna` network based on transition probabilities
+#' Prune a Transition Network based on Transition Probabilities
 #'
 #' Prunes a network represented by a `tna` object by removing
 #' edges based on a specified threshold, lowest percent of non-zero edge
@@ -6,7 +6,7 @@
 #' It ensures the network remains weakly connected.
 #'
 #' @export
-#' @family evaluation
+#' @family validation
 #' @param x An object of class `tna` or `group_tna`.
 #' @param ... Potential additional arguments passed to the pruning method.
 prune <- function(x, ...) {
@@ -14,7 +14,7 @@ prune <- function(x, ...) {
 }
 
 
-#' Prune a `tna` network based on transition probabilities
+#' Prune a Transition Network based on Transition Probabilities
 #'
 #' Prunes a network represented by a `tna` object by removing
 #' edges based on a specified threshold, lowest percent of non-zero edge
@@ -22,7 +22,7 @@ prune <- function(x, ...) {
 #' It ensures the network remains weakly connected.
 #'
 #' @export
-#' @family evaluation
+#' @family validation
 #' @rdname prune
 #' @param x An object of class `tna` or `group_tna`
 #' @param method A `character` string describing the pruning method.
@@ -65,7 +65,6 @@ prune.tna <- function(x, method = "threshold", threshold = 0.1, lowest = 0.05,
     is.null(attr(x, "pruning")),
     "The model has already been pruned."
   )
-  # TODO No lables? when?
   labels <- ifelse_(
     is.null(x$labels),
     seq_len(nodes(x)),
@@ -133,15 +132,7 @@ prune_bootstrap <- function(x, boot, ...) {
   if (is.null(boot)) {
     boot <- bootstrap(x, ...)
   }
-  sig <- boot$summary$sig
-  removed <- boot$summary[which(!sig), c("from", "to", "weight")]
-  list(
-    weights = boot$weights_sig,
-    method = "bootstrap",
-    removed = removed,
-    num_removed = sum(!sig),
-    num_retained = sum(sig)
-  )
+  attr(boot$model, "pruning")
 }
 
 prune_disparity <- function(x, level, labels) {
@@ -175,7 +166,7 @@ prune_disparity <- function(x, level, labels) {
 #' Print Detailed Information on the Pruning Results
 #'
 #' @export
-#' @family evaluation
+#' @family validation
 #' @rdname pruning_details
 #' @param x A `tna` or `group_tna` object.
 #' @param ... Ignored.
@@ -216,6 +207,7 @@ pruning_details.tna <- function(x, ...) {
 #' Restore a Pruned Transition Network Analysis Model
 #'
 #' @export
+#' @family validation
 #' @rdname deprune
 #' @param x A `tna` or `group_tna` object.
 #' @param ... Ignored.
@@ -252,8 +244,9 @@ deprune.tna <- function(x, ...) {
 
 #' Restore Previous Pruning of a Transition Network Analysis Model
 #'
-#' @rdname reprune
 #' @export
+#' @family validation
+#' @rdname reprune
 #' @param x A `tna` or `group_tna` object.
 #' @param ... Ignored.
 #' @return A `tna` or `group_tna` object that has not been pruned. The previous
@@ -307,12 +300,11 @@ disparity_filter <- function(mat, level) {
   sig
 }
 
+
 # Clusters ----------------------------------------------------------------
 
 
-
 #' @export
-#' @family clusters
 #' @rdname prune
 prune.group_tna <- function(x, ...) {
   check_missing(x)
@@ -327,7 +319,6 @@ prune.group_tna <- function(x, ...) {
 }
 
 #' @export
-#' @family clusters
 #' @rdname pruning_details
 pruning_details.group_tna <- function(x, ...) {
   check_missing(x)
@@ -343,7 +334,6 @@ pruning_details.group_tna <- function(x, ...) {
 }
 
 #' @export
-#' @family clusters
 #' @rdname deprune
 deprune.group_tna <- function(x, ...) {
   check_missing(x)
@@ -358,7 +348,6 @@ deprune.group_tna <- function(x, ...) {
 }
 
 #' @export
-#' @family clusters
 #' @rdname reprune
 reprune.group_tna <- function(x, ...) {
   check_missing(x)

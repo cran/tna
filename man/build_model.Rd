@@ -10,6 +10,7 @@
 \alias{tna}
 \alias{ftna}
 \alias{ctna}
+\alias{atna}
 \title{Build a Transition Network Analysis Model}
 \usage{
 build_model(x, type = "relative", scaling = character(0L), ...)
@@ -50,6 +51,8 @@ tna(x, ...)
 ftna(x, ...)
 
 ctna(x, ...)
+
+atna(x, ...)
 }
 \arguments{
 \item{x}{A \code{stslist} (from \code{TraMineR}), \code{data.frame}, a \code{matrix}, or
@@ -80,6 +83,9 @@ sliding window, capturing local relationships
 (resulting in what is called a reply network in some contexts).
 The resulting weight matrix is the transpose of the \code{"frequency"}
 option.
+\item \code{"attention"} aggregates all downstream pairs of states with an
+exponential decay for the gap between states. The parameter \code{lambda}
+can be used to control the decay rate (the default is 1)-
 }}
 
 \item{scaling}{A \code{character} vector describing how to scale the weights
@@ -99,7 +105,8 @@ positive ranks, unlike \code{"minmax"} when all weights are positive.
 \code{ties.method = "average"}.
 }}
 
-\item{...}{Ignored.}
+\item{...}{Ignored. For the \code{build_model} aliases (e.g., \code{tna}), this
+argument matches the actual arguments to \code{build_model} beside \code{x}.}
 
 \item{inits}{An optional \code{numeric} vector of initial state probabilities
 for each state. Can be provided only if \code{x} is a \code{matrix}. The vector will
@@ -118,6 +125,7 @@ specifying the window size. The default is 2.
 are weighted by the inverse of the sequence length. Can be used for
 frequency, co-occurrence and reverse model types. The default is
 \code{FALSE}.
+\item \code{lambda}: A \code{numeric} value for the decay rate. The default is 1.
 }}
 
 \item{cols}{An \code{integer}/\code{character} vector giving the indices/names of the
@@ -125,48 +133,6 @@ columns that should be considered as sequence data.
 Defaults to all columns, i.e., \code{seq(1, ncol(x))}.}
 }
 \value{
-An object of class \code{tna} which is a \code{list} containing the
-following elements:
-\itemize{
-\item \code{weights}: An adjacency \code{matrix} of the model (weight matrix).
-\item \code{inits}: A \code{numeric} vector of initial values for each state.
-For \code{matrix} type \code{x}, this element will be \code{NULL} if \code{inits} is not
-directly provided
-\item \code{labels}: A \code{character} vector of the state labels, or \code{NULL} if
-there are no labels.
-\item \code{data}: The original sequence data that has been converted to an
-internal format used by the package when \code{x} is a \code{stslist} or a
-\code{data.frame} object. Otherwise \code{NULL}.
-}
-
-An object of class \code{tna} which is a \code{list} containing the
-following elements:
-\itemize{
-\item \code{weights}: An adjacency \code{matrix} of the model (weight matrix).
-\item \code{inits}: A \code{numeric} vector of initial values for each state.
-For \code{matrix} type \code{x}, this element will be \code{NULL} if \code{inits} is not
-directly provided
-\item \code{labels}: A \code{character} vector of the state labels, or \code{NULL} if
-there are no labels.
-\item \code{data}: The original sequence data that has been converted to an
-internal format used by the package when \code{x} is a \code{stslist} or a
-\code{data.frame} object. Otherwise \code{NULL}.
-}
-
-An object of class \code{tna} which is a \code{list} containing the
-following elements:
-\itemize{
-\item \code{weights}: An adjacency \code{matrix} of the model (weight matrix).
-\item \code{inits}: A \code{numeric} vector of initial values for each state.
-For \code{matrix} type \code{x}, this element will be \code{NULL} if \code{inits} is not
-directly provided
-\item \code{labels}: A \code{character} vector of the state labels, or \code{NULL} if
-there are no labels.
-\item \code{data}: The original sequence data that has been converted to an
-internal format used by the package when \code{x} is a \code{stslist} or a
-\code{data.frame} object. Otherwise \code{NULL}.
-}
-
 An object of class \code{tna} which is a \code{list} containing the
 following elements:
 \itemize{
@@ -198,12 +164,30 @@ model <- ftna(group_regulation)
 
 model <- ctna(group_regulation)
 
+model <- atna(group_regulation)
+
 }
 \seealso{
-Core functions
-\code{\link{centralities}()},
+Basic functions
+\code{\link{hist.group_tna}()},
+\code{\link{hist.tna}()},
+\code{\link{import_data}()},
+\code{\link{plot.group_tna}()},
 \code{\link{plot.tna}()},
-\code{\link{plot.tna_centralities}()},
-\code{\link{plot_compare}()}
+\code{\link{plot_frequencies}()},
+\code{\link{plot_frequencies.group_tna}()},
+\code{\link{plot_mosaic}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
+\code{\link{prepare_data}()},
+\code{\link{print.group_tna}()},
+\code{\link{print.summary.group_tna}()},
+\code{\link{print.summary.tna}()},
+\code{\link{print.tna}()},
+\code{\link{print.tna_data}()},
+\code{\link{simulate.tna}()},
+\code{\link{summary.group_tna}()},
+\code{\link{summary.tna}()},
+\code{\link{tna-package}}
 }
-\concept{core}
+\concept{basic}

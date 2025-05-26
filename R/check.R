@@ -36,7 +36,8 @@ check_model_type <- function(type) {
       "n-gram",
       "gap",
       "window",
-      "reverse"
+      "reverse",
+      "attention"
     )
   )
 }
@@ -95,8 +96,9 @@ check_measures <- function(x) {
     ),
     "Argument {.arg measures} must be a {.cls character} vector."
   )
+  available_measures <- names(centrality_funs)
   lower_measures <- tolower(x)
-  lower_defaults <- tolower(available_centrality_measures)
+  lower_defaults <- tolower(available_measures)
   measures_match <- pmatch(lower_measures, lower_defaults)
   no_match <- is.na(measures_match)
   invalid_measures <- x[no_match]
@@ -108,7 +110,7 @@ check_measures <- function(x) {
       `x` = "Measure{?s} {.val {invalid_measures}} {?is/are} not recognized."
     )
   )
-  available_centrality_measures[measures_match]
+  available_measures[measures_match]
 }
 
 #' Check that `x` is a non-negative
@@ -189,13 +191,7 @@ check_flag <- function(x) {
 check_layout <- function(x, layout, args = list(), ...) {
   if (is.character(layout)) {
     layout <- tolower(layout)
-    layout <- try(
-      match.arg(
-        layout,
-        c("circle", "groups", "spring")
-      ),
-      silent = TRUE
-    )
+    layout <- try_(match.arg(layout, c("circle", "groups", "spring")))
     stopifnot_(
       !inherits(layout, "try-error"),
       "A {.cls character} layout must be either {.val circle}, {.val groups},
@@ -262,14 +258,7 @@ check_weights <- function(x, type) {
 check_match <- function(x, choices, several.ok = FALSE) {
   arg <- deparse(substitute(x))
   x <- onlyif(is.character(x), tolower(x))
-  x <- try(
-    match.arg(
-      arg = x,
-      choices = choices,
-      several.ok = several.ok
-    ),
-    silent = TRUE
-  )
+  x <- try_(match.arg(arg = x, choices = choices, several.ok = several.ok))
   n_choices <- length(choices)
   prefix <- ifelse_(
     several.ok,
@@ -296,6 +285,27 @@ check_string <- function(x) {
   stopifnot_(
     is.character(x) && length(x) == 1L,
     "Argument {.arg {arg}} must be a {.cls character} vector of length 1."
+  )
+}
+
+#' Check that argument is a valid cluster
+#'
+#' @param x A `group_tna` object.
+#' @param i Index vector of clusters.
+#' @noRd
+check_cluster <- function(x, i) {
+  i <- ifelse_(is.numeric(i), as.integer(i), i)
+  arg <- deparse(substitute(i))
+  n <- length(x)
+  stopifnot_(
+    is.integer(i) || all(i %in% names(x)),
+    "Argument {.arg {arg}} must only contain names of {.arg x} when of type
+     {.cls character}."
+  )
+  stopifnot_(
+    is.character(i) || all(i >= 1 & i <= n),
+    "Argument {.arg {arg}} must contain integers between 1 and {n} when of type
+     {.cls numeric}."
   )
 }
 

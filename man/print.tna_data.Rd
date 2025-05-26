@@ -2,7 +2,7 @@
 % Please edit documentation in R/print.R
 \name{print.tna_data}
 \alias{print.tna_data}
-\title{Print a TNA data object}
+\title{Print a TNA Data Object}
 \usage{
 \method{print}{tna_data}(x, data = "sequence", ...)
 }
@@ -20,17 +20,37 @@ data.}
 \code{x} (invisibly).
 }
 \description{
-Print a TNA data object
+Print a TNA Data Object
 }
 \examples{
-data_single_session <- tibble::tibble(
-  action = c(
-    "view", "click", "add_cart", "view", "checkout", "view", "click", "share"
-   )
-)
-results_single <- prepare_data(data_single_session, action = "action")
-print(results_single, which = "sequence")
-print(results_single, which = "meta")
-print(results_single, which = "long")
+res <- prepare_data(group_regulation_long, action = "Action", actor = "Actor",
+time = "Time")
+print(res, which = "sequence")
+print(res, which = "meta")
+print(res, which = "long")
 
 }
+\seealso{
+Basic functions
+\code{\link{build_model}()},
+\code{\link{hist.group_tna}()},
+\code{\link{hist.tna}()},
+\code{\link{import_data}()},
+\code{\link{plot.group_tna}()},
+\code{\link{plot.tna}()},
+\code{\link{plot_frequencies}()},
+\code{\link{plot_frequencies.group_tna}()},
+\code{\link{plot_mosaic}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
+\code{\link{prepare_data}()},
+\code{\link{print.group_tna}()},
+\code{\link{print.summary.group_tna}()},
+\code{\link{print.summary.tna}()},
+\code{\link{print.tna}()},
+\code{\link{simulate.tna}()},
+\code{\link{summary.group_tna}()},
+\code{\link{summary.tna}()},
+\code{\link{tna-package}}
+}
+\concept{basic}

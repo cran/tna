@@ -2,7 +2,7 @@
 % Please edit documentation in R/print.R
 \name{print.summary.tna_bootstrap}
 \alias{print.summary.tna_bootstrap}
-\title{Print Bootstrap Summary}
+\title{Print a Bootstrap Summary}
 \usage{
 \method{print}{summary.tna_bootstrap}(x, ...)
 }
@@ -13,10 +13,10 @@
 }
 \value{
 A \code{summary.tna_bootstrap} object (invisibly) containing the weight,
-p-value and confidence interval of each edge.
+estimated p-value and confidence interval of each edge.
 }
 \description{
-Print Bootstrap Summary
+Print a Bootstrap Summary
 }
 \examples{
 model <- tna(group_regulation)
@@ -25,3 +25,30 @@ boot <- bootstrap(model, iter = 10)
 print(summary(boot))
 
 }
+\seealso{
+Validation functions
+\code{\link{bootstrap}()},
+\code{\link{deprune}()},
+\code{\link{estimate_cs}()},
+\code{\link{permutation_test}()},
+\code{\link{permutation_test.group_tna}()},
+\code{\link{plot.group_tna_bootstrap}()},
+\code{\link{plot.group_tna_permutation}()},
+\code{\link{plot.group_tna_stability}()},
+\code{\link{plot.tna_bootstrap}()},
+\code{\link{plot.tna_permutation}()},
+\code{\link{plot.tna_stability}()},
+\code{\link{print.group_tna_bootstrap}()},
+\code{\link{print.group_tna_permutation}()},
+\code{\link{print.group_tna_stability}()},
+\code{\link{print.summary.group_tna_bootstrap}()},
+\code{\link{print.tna_bootstrap}()},
+\code{\link{print.tna_permutation}()},
+\code{\link{print.tna_stability}()},
+\code{\link{prune}()},
+\code{\link{pruning_details}()},
+\code{\link{reprune}()},
+\code{\link{summary.group_tna_bootstrap}()},
+\code{\link{summary.tna_bootstrap}()}
+}
+\concept{validation}

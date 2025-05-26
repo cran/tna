@@ -2,11 +2,15 @@
 % Please edit documentation in R/permutation.R
 \name{permutation_test}
 \alias{permutation_test}
-\title{Compare Two Networks from Sequence Data Using Permutation Tests}
+\alias{permutation_test.tna}
+\title{Compare Two Networks from Sequence Data using a Permutation Test}
 \usage{
-permutation_test(
+permutation_test(x, ...)
+
+\method{permutation_test}{tna}(
   x,
   y,
+  adjust = "none",
   iter = 1000,
   paired = FALSE,
   level = 0.05,
@@ -17,7 +21,13 @@ permutation_test(
 \arguments{
 \item{x}{A \code{tna} object containing sequence data for the first \code{tna} model.}
 
+\item{...}{Additional arguments passed to \code{\link[=centralities]{centralities()}}.}
+
 \item{y}{A \code{tna} object containing sequence data for the second \code{tna} model.}
+
+\item{adjust}{A \code{character} string for the method to adjust p-values with
+for multiple comparisons. The default is \code{"none"} for no adjustment.
+See \code{\link[stats:p.adjust]{stats::p.adjust()}} for details and available adjustment methods.}
 
 \item{iter}{An \code{integer} giving the number of permutations to perform.
 The default is 1000.}
@@ -30,16 +40,14 @@ permutation tests. The default is 0.05.}
 
 \item{measures}{A \code{character} vector of centrality measures to test.
 See \code{\link[=centralities]{centralities()}} for a list of available centrality measures.}
-
-\item{...}{Additional arguments passed to \code{\link[=centralities]{centralities()}}.}
 }
 \value{
 A \code{tna_permutation} object which is a \code{list} with two elements:
-\code{edges} and \code{centralities}, both containing the following elements
+\code{edges} and \code{centralities}, both containing the following elements:
 \itemize{
 \item \code{stats}: A \code{data.frame} of original differences, effect sizes, and
-p-values for each edge or centrality measure. The effect size is
-computed as the observed difference divided by the standard deviation
+estimated p-values for each edge or centrality measure. The effect size
+is computed as the observed difference divided by the standard deviation
 of the differences of the permuted samples.
 \item \code{diffs_true}: A \code{matrix} of differences in the data.
 \item \code{diffs_sig}: A \code{matrix} showing the significant differences.
@@ -50,7 +58,7 @@ This function compares two networks built from sequence data using
 permutation tests. The function builds Markov models for two sequence
 objects, computes the transition probabilities, and compares them by
 performing permutation tests. It returns the differences in transition
-probabilities, effect sizes, p-values, and confidence intervals.
+probabilities, effect sizes, estimated p-values, and confidence intervals.
 }
 \examples{
 model_x <- tna(group_regulation[1:200, ])
@@ -60,9 +68,29 @@ permutation_test(model_x, model_y, iter = 20)
 
 }
 \seealso{
-Evaluation and validation functions
+Validation functions
 \code{\link{bootstrap}()},
+\code{\link{deprune}()},
+\code{\link{estimate_cs}()},
+\code{\link{permutation_test.group_tna}()},
+\code{\link{plot.group_tna_bootstrap}()},
+\code{\link{plot.group_tna_permutation}()},
+\code{\link{plot.group_tna_stability}()},
+\code{\link{plot.tna_bootstrap}()},
+\code{\link{plot.tna_permutation}()},
+\code{\link{plot.tna_stability}()},
+\code{\link{print.group_tna_bootstrap}()},
+\code{\link{print.group_tna_permutation}()},
+\code{\link{print.group_tna_stability}()},
+\code{\link{print.summary.group_tna_bootstrap}()},
+\code{\link{print.summary.tna_bootstrap}()},
+\code{\link{print.tna_bootstrap}()},
+\code{\link{print.tna_permutation}()},
+\code{\link{print.tna_stability}()},
 \code{\link{prune}()},
-\code{\link{pruning_details}()}
+\code{\link{pruning_details}()},
+\code{\link{reprune}()},
+\code{\link{summary.group_tna_bootstrap}()},
+\code{\link{summary.tna_bootstrap}()}
 }
-\concept{evaluation}
+\concept{validation}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/print.R
 \name{print.tna}
 \alias{print.tna}
-\title{Print a \code{tna} object}
+\title{Print a \code{tna} Object}
 \usage{
 \method{print}{tna}(x, digits = getOption("digits"), generic = FALSE, ...)
 }
@@ -21,10 +21,34 @@ instead. Defaults to \code{FALSE}.}
 The \code{tna} object passed as argument \code{x} (invisibly).
 }
 \description{
-Print a \code{tna} object
+Print a \code{tna} Object
 }
 \examples{
 model <- tna(group_regulation)
 print(model)
 
 }
+\seealso{
+Basic functions
+\code{\link{build_model}()},
+\code{\link{hist.group_tna}()},
+\code{\link{hist.tna}()},
+\code{\link{import_data}()},
+\code{\link{plot.group_tna}()},
+\code{\link{plot.tna}()},
+\code{\link{plot_frequencies}()},
+\code{\link{plot_frequencies.group_tna}()},
+\code{\link{plot_mosaic}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
+\code{\link{prepare_data}()},
+\code{\link{print.group_tna}()},
+\code{\link{print.summary.group_tna}()},
+\code{\link{print.summary.tna}()},
+\code{\link{print.tna_data}()},
+\code{\link{simulate.tna}()},
+\code{\link{summary.group_tna}()},
+\code{\link{summary.tna}()},
+\code{\link{tna-package}}
+}
+\concept{basic}

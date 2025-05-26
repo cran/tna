@@ -1,5 +1,3 @@
-
-
 test_that("group_model returns correct type", {
   expect_true(
     inherits(
@@ -28,6 +26,17 @@ test_that("group_ctna returns correct type", {
   expect_equal(
     attr(ctna_model[[1]], "type"),
     "co-occurrence"
+  )
+})
+
+test_that("group_atna returns correct type", {
+  expect_error(
+    atna_model <- group_atna(mock_sequence, group = c(1, 1, 2, 2)),
+    NA
+  )
+  expect_equal(
+    attr(atna_model[[1]], "type"),
+    "attention"
   )
 })
 
@@ -62,13 +71,12 @@ test_that("groups can be renamed", {
 })
 
 test_that("group model can be summarized", {
-  model <- group_model(engagement_mmm)
   expect_error(
-    summary(model),
+    summary(mmm_model),
     NA
   )
   expect_error(
-    summary(model, combined = FALSE),
+    summary(mmm_model, combined = FALSE),
     NA
   )
 })
@@ -113,4 +121,9 @@ test_that("missing values in group variable warns", {
   )
 })
 
-
+test_that("groupwise models can be constructed with scaling", {
+  expect_error(
+    group_model(engagement_mmm, scaling = c("minmax", "rank", "max")),
+    NA
+  )
+})

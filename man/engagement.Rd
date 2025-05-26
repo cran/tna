@@ -3,7 +3,7 @@
 \docType{data}
 \name{engagement}
 \alias{engagement}
-\title{Example data on student engagement}
+\title{Example Data on Student Engagement}
 \format{
 A \code{stslist} object (sequence data).
 }
@@ -17,13 +17,14 @@ engagement
 Students' engagement states (Active / Average / Disengaged)
 throughout a whole study program. The data was generated synthetically
 based on the article "The longitudinal association between engagement and
-achievement varies by time, students’ profiles, and achievement state:
+achievement varies by time, students' profiles, and achievement state:
 A full program study"
 }
 \seealso{
-Other examples: 
+Datasets
 \code{\link{engagement_mmm}},
-\code{\link{group_regulation}}
+\code{\link{group_regulation}},
+\code{\link{group_regulation_long}}
 }
-\concept{examples}
+\concept{datasets}
 \keyword{datasets}

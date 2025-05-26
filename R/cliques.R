@@ -1,11 +1,12 @@
 #' Identify Cliques in a Transition Network
 #'
 #' This function identifies cliques of a specified size in a transition network.
-#' It searches for cliques—complete subgraphs where every pair of nodes is
-#' connected—of size `n` in the transition matrix for the specified cluster
+#' It searches for cliques, i.e., complete subgraphs where every pair of nodes
+#' is connected, of size `n` in the transition matrix for the specified cluster
 #' in the `tna` object.
 #'
 #' @export
+#' @family cliques
 #' @rdname cliques
 #' @param x A `tna` or a `group_tna` object.
 #' @param size An `integer` specifying the size of the cliques to identify.
@@ -54,24 +55,12 @@ cliques.tna <- function(x, size = 2, threshold = 0, sum_weights = FALSE, ...) {
   mat <- weights
   mat[mat < threshold] <- 0
   if (sum_weights) {
-    g <- igraph::graph_from_adjacency_matrix(
-      mat,
-      mode = "plus",
-      weighted = TRUE
-    )
+    g <- as.igraph(mat, mode = "plus")
     cliq <- igraph::cliques(g, min = size, max = size)
     cliq_idx <- lapply(cliq, function(y) which(labels %in% attr(y, "names")))
   } else {
-    g1 <- igraph::graph_from_adjacency_matrix(
-      mat,
-      mode = "upper",
-      weighted = TRUE
-    )
-    g2 <- igraph::graph_from_adjacency_matrix(
-      mat,
-      mode = "lower",
-      weighted = TRUE
-    )
+    g1 <- as.igraph(mat, mode = "upper")
+    g2 <- as.igraph(mat, mode = "lower")
     cliq1 <- igraph::cliques(g1, min = size, max = size)
     cliq2 <- igraph::cliques(g2, min = size, max = size)
     nodes1 <- lapply(cliq1, function(y) which(labels %in% attr(y, "names")))
@@ -99,8 +88,11 @@ cliques.tna <- function(x, size = 2, threshold = 0, sum_weights = FALSE, ...) {
 }
 
 #' @export
-#' @family clusters
 #' @rdname cliques
+#' @examples
+#' model <- group_tna(engagement_mmm)
+#' cliques(model)
+#'
 cliques.group_tna <- function(x, size = 2, threshold = 0,
                               sum_weights = FALSE, ...) {
   check_missing(x)
@@ -108,15 +100,11 @@ cliques.group_tna <- function(x, size = 2, threshold = 0,
   structure(
     lapply(
       x,
-      function(i) {
-        cliques.tna(
-          i,
-          size = size,
-          threshold = threshold,
-          sum_weights = sum_weights,
-          ...
-        )
-      }
+      cliques,
+      size = size,
+      threshold = threshold,
+      sum_weights = sum_weights,
+      ...
     ),
     class = "group_tna_cliques"
   )

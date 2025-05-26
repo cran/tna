@@ -18,7 +18,15 @@ bootstrap(x, ...)
   ...
 )
 
-\method{bootstrap}{group_tna}(x, ...)
+\method{bootstrap}{group_tna}(
+  x,
+  iter = 1000,
+  level = 0.05,
+  method = "stability",
+  threshold,
+  consistency_range = c(0.75, 1.25),
+  ...
+)
 }
 \arguments{
 \item{x}{A \code{tna} or a \code{group_tna} object created from sequence data.}
@@ -55,16 +63,21 @@ following elements:
 \itemize{
 \item \code{weights_orig}: The original edge weight \code{matrix}.
 \item \code{weights_sig}: The \code{matrix} of significant transitions
-(those with p-values below the significance level).
+(those with estimated p-values below the significance level).
 \item \code{weights_mean}: The mean weight \code{matrix} from the bootstrap samples.
 \item \code{weights_sd}: The standard deviation \code{matrix} from the bootstrap samples.
-\item \code{ci_lower}: The lower bound \code{matrix} of the confidence intervals for
-the edge weights.
-\item \code{ci_upper}: The upper bound \code{matrix} of the confidence intervals for
-the edge weights.
-\item \code{p_values}: The \code{matrix} of p-values for the edge weights.
+\item \code{cr_lower}: The lower bound \code{matrix} of the consistency range for the
+edge weights.
+\item \code{cr_upper}: The upper bound \code{matrix} of the consistency range for the
+edge weights.
+\item \code{ci_lower}: The lower bound \code{matrix} of the bootstrap confidence
+intervals for the edge weights.
+\item \code{ci_upper}: The upper bound \code{matrix} of the bootstrap confidence
+intervals for the edge weights.
+\item \code{p_values}: The \code{matrix} of estimated p-values for the edge weights.
 \item \code{summary}: A \code{data.frame} summarizing the edges, their weights,
-p-values, statistical significance and confidence intervals.
+p-values, statistical significance, consistency ranges, and
+confidence intervals.
 }
 
 If \code{x} is a \code{group_tna} object, the output is a \code{group_tna_bootstrap}
@@ -81,10 +94,10 @@ The function first computes the original edge weights for the specified
 cluster from the \code{tna} object. It then performs bootstrapping by resampling
 the sequence data and recalculating the edge weights for each
 bootstrap sample. The mean and standard deviation of the transitions are
-computed, and confidence intervals are derived. The function also calculates
+computed, and confidence intervals are derived. The function also estimates
 p-values for each edge and identifies significant edges based on
 the specified significance level. A matrix of significant edges
-(those with p-values below the significance level) is generated.
+(those with estimated p-values below the significance level) is generated.
 Additional statistics on removed edges (those not considered
 significant) are provided.
 
@@ -99,42 +112,29 @@ bootstrap(model, iter = 10)
 
 }
 \seealso{
-Evaluation and validation functions
-\code{\link{permutation_test}()},
-\code{\link{prune}()},
-\code{\link{pruning_details}()}
-
-Cluster-related functions
-\code{\link{centralities}()},
-\code{\link{cliques}()},
-\code{\link{communities}()},
+Validation functions
 \code{\link{deprune}()},
 \code{\link{estimate_cs}()},
-\code{\link{group_model}()},
-\code{\link{hist.group_tna}()},
-\code{\link{mmm_stats}()},
-\code{\link{plot.group_tna}()},
-\code{\link{plot.group_tna_centralities}()},
-\code{\link{plot.group_tna_cliques}()},
-\code{\link{plot.group_tna_communities}()},
+\code{\link{permutation_test}()},
+\code{\link{permutation_test.group_tna}()},
+\code{\link{plot.group_tna_bootstrap}()},
+\code{\link{plot.group_tna_permutation}()},
 \code{\link{plot.group_tna_stability}()},
-\code{\link{plot_compare.group_tna}()},
-\code{\link{plot_mosaic.group_tna}()},
-\code{\link{plot_mosaic.tna_data}()},
-\code{\link{print.group_tna}()},
+\code{\link{plot.tna_bootstrap}()},
+\code{\link{plot.tna_permutation}()},
+\code{\link{plot.tna_stability}()},
 \code{\link{print.group_tna_bootstrap}()},
-\code{\link{print.group_tna_centralities}()},
-\code{\link{print.group_tna_cliques}()},
-\code{\link{print.group_tna_communities}()},
+\code{\link{print.group_tna_permutation}()},
 \code{\link{print.group_tna_stability}()},
-\code{\link{print.summary.group_tna}()},
 \code{\link{print.summary.group_tna_bootstrap}()},
+\code{\link{print.summary.tna_bootstrap}()},
+\code{\link{print.tna_bootstrap}()},
+\code{\link{print.tna_permutation}()},
+\code{\link{print.tna_stability}()},
 \code{\link{prune}()},
 \code{\link{pruning_details}()},
-\code{\link{rename_groups}()},
 \code{\link{reprune}()},
-\code{\link{summary.group_tna}()},
-\code{\link{summary.group_tna_bootstrap}()}
+\code{\link{summary.group_tna_bootstrap}()},
+\code{\link{summary.tna_bootstrap}()}
 }
-\concept{clusters}
-\concept{evaluation}
+\concept{validation}

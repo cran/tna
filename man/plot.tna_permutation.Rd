@@ -4,12 +4,18 @@
 \alias{plot.tna_permutation}
 \title{Plot the Significant Differences from a Permutation Test}
 \usage{
-\method{plot}{tna_permutation}(x, colors, ...)
+\method{plot}{tna_permutation}(x, colors, posCol = "#009900", negCol = "red", ...)
 }
 \arguments{
 \item{x}{A \code{tna_permutation} object.}
 
 \item{colors}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
+
+\item{posCol}{Color for plotting edges
+the difference in edge weights is positive. See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
+
+\item{negCol}{Color for plotting edges when
+the the difference in edge weights is negative. See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
 
 \item{...}{Arguments passed to \code{\link[=plot_model]{plot_model()}}.}
 }
@@ -28,3 +34,30 @@ perm <- permutation_test(model_x, model_y, iter = 20)
 plot(perm)
 
 }
+\seealso{
+Validation functions
+\code{\link{bootstrap}()},
+\code{\link{deprune}()},
+\code{\link{estimate_cs}()},
+\code{\link{permutation_test}()},
+\code{\link{permutation_test.group_tna}()},
+\code{\link{plot.group_tna_bootstrap}()},
+\code{\link{plot.group_tna_permutation}()},
+\code{\link{plot.group_tna_stability}()},
+\code{\link{plot.tna_bootstrap}()},
+\code{\link{plot.tna_stability}()},
+\code{\link{print.group_tna_bootstrap}()},
+\code{\link{print.group_tna_permutation}()},
+\code{\link{print.group_tna_stability}()},
+\code{\link{print.summary.group_tna_bootstrap}()},
+\code{\link{print.summary.tna_bootstrap}()},
+\code{\link{print.tna_bootstrap}()},
+\code{\link{print.tna_permutation}()},
+\code{\link{print.tna_stability}()},
+\code{\link{prune}()},
+\code{\link{pruning_details}()},
+\code{\link{reprune}()},
+\code{\link{summary.group_tna_bootstrap}()},
+\code{\link{summary.tna_bootstrap}()}
+}
+\concept{validation}

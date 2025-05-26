@@ -5,8 +5,9 @@
 #' mean distance, strength measures, degree centrality, and reciprocity.
 #'
 #' @export
+#' @family basic
 #' @param object A `tna` object.
-#' @param ... Ignored
+#' @param ... Ignored.
 #' @details
 #' The function extracts the `igraph` network  and
 #' computes the following network metrics:
@@ -97,10 +98,11 @@ summary.tna <- function(object, ...) {
 #' Summarize Bootstrap Results
 #'
 #' @export
-#' @param object A `tna_bootstrap` object from [bootstrap()].
+#' @family validation
+#' @param object A `tna_bootstrap` object.
 #' @param ... Ignored.
 #' @return A `summary.tna_bootstrap` object containing the weight,
-#' p-value and confidence interval of each edge.
+#' estimated p-value and confidence interval of each edge.
 #' @examples
 #' model <- tna(group_regulation)
 #' # Small number of iterations for CRAN
@@ -123,7 +125,7 @@ summary.tna_bootstrap <- function(object, ...) {
 #' mean distance, strength measures, degree centrality, and reciprocity.
 #'
 #' @export
-#' @family clusters
+#' @family basic
 #' @param object A `group_tna` object.
 #' @param combined A logical indicating whether the summary results should be
 #' combined into a single data frame for all clusters (defaults to `TRUE`)
@@ -192,11 +194,11 @@ summary.group_tna <- function(object, combined = TRUE, ...) {
 #' Summarize Bootstrap Results for a Grouped Transition Network
 #'
 #' @export
-#' @family clusters
-#' @param object A `group_tna_bootstrap` object from [bootstrap()].
+#' @family validation
+#' @param object A `group_tna_bootstrap` object.
 #' @param ... Ignored.
 #' @return A `summary.group_tna_bootstrap` object containing the weight,
-#' p-value and confidence interval of each edge for each cluster.
+#' estimated p-value and confidence interval of each edge for each cluster.
 #' @examples
 #' model <- group_tna(engagement_mmm)
 #' # Small number of iterations for CRAN

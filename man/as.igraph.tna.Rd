@@ -2,18 +2,30 @@
 % Please edit documentation in R/utilities.R
 \name{as.igraph.tna}
 \alias{as.igraph.tna}
-\title{Coerce a \code{tna} object to an \code{igraph} object.}
+\title{Coerce a \code{tna} Object into an \code{igraph} Object.}
 \usage{
-\method{as.igraph}{tna}(x, ...)
+\method{as.igraph}{tna}(x, mode = "directed", ...)
 }
 \arguments{
-\item{x}{The object to convert.}
+\item{x}{A \code{tna} object.}
 
-\item{...}{Additional arguments. None currently.}
+\item{mode}{Character scalar, specifies how igraph should interpret the
+supplied matrix. See also the \code{weighted} argument, the interpretation
+depends on that too. Possible values are: \code{directed},
+\code{undirected}, \code{upper}, \code{lower}, \code{max}, \code{min},
+\code{plus}. See details below.}
+
+\item{...}{Ignored.}
 }
 \value{
 An \code{igraph} object.
 }
 \description{
-Coerce a \code{tna} object to an \code{igraph} object.
+Coerce a \code{tna} Object into an \code{igraph} Object.
 }
+\seealso{
+Helper functions
+\code{\link{as.igraph.group_tna}()},
+\code{\link{as.igraph.matrix}()}
+}
+\concept{helpers}

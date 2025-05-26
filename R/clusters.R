@@ -1,7 +1,7 @@
-#' Build a grouped Transition Network Analysis Model
+#' Build a Grouped Transition Network Analysis Model
 #'
 #' This function constructs a transition network analysis (TNA) model for
-#' each cluster from a given sequence, wide-formatted dataframe,
+#' each cluster from a given sequence, wide-format dataframe,
 #' or a mixture Markov model.
 #'
 #' @export
@@ -15,7 +15,8 @@
 #'   row of the data / sequence. Must have the same length as the number of
 #'   rows/sequences of `x`. Alternatively, a single `character` string giving
 #'   the column name of the data that defines the group when `x` is a wide
-#'   format `data.frame` or a `tna_data` object.
+#'   format `data.frame` or a `tna_data` object. If not provided, each row of
+#'   the data forms a cluster.
 #' @param cols An `integer`/`character` vector giving the indices/names of the
 #'   columns that should be considered as sequence data.
 #'   Defaults to all columns, i.e., `seq(1, ncol(x))`. The columns are
@@ -24,15 +25,19 @@
 #' value in `group` be removed. If `FALSE`, an additional category for `NA`
 #' values will be added. The default is `FALSE` and a warning is issued
 #' if `NA` values are detected.
+#' @param groupwise A `logical` value that indicates whether scaling methods
+#' should be applied by group (`TRUE`) or globally (`FALSE`, the default).
 #' @inheritParams build_model
 #' @param ... Ignored.
 #' @return An object of class `group_tna` which is a `list` containing one
 #'   element per cluster. Each element is a `tna` object.
 #'
 #' @examples
+#' # Manually specified groups
 #' group <- c(rep("High", 1000), rep("Low", 1000))
 #' model <- group_model(group_regulation, group = group)
 #'
+#' # Groups defined by a mixed Markov model
 #' model <- group_model(engagement_mmm)
 #'
 group_model <- function(x, ...) {
@@ -40,13 +45,13 @@ group_model <- function(x, ...) {
 }
 
 #' @export
-#' @family clusters
 #' @rdname group_model
 group_model.default <- function(x, group, type = "relative",
-                                scaling = character(0L), cols, params = list(),
-                                na.rm = TRUE, ...) {
+                                scaling = character(0L), groupwise = FALSE,
+                                cols, params = list(), na.rm = TRUE, ...) {
   check_missing(x)
-  check_missing(group)
+  check_flag(groupwise)
+  check_flag(na.rm)
   stopifnot_(
     inherits(x, "stslist") ||
       inherits(x, "data.frame") || inherits(x, "tna_data"),
@@ -61,6 +66,11 @@ group_model.default <- function(x, group, type = "relative",
     cols <- ifelse_(missing(cols), seq_len(ncol(x)), cols)
     check_range(cols, type = "integer", scalar = FALSE, min = 1L, max = ncol(x))
   }
+  group <- ifelse_(
+    missing(group),
+    seq_len(nrow(x)),
+    group
+  )
   type <- check_model_type(type)
   scaling <- check_model_scaling(scaling)
   group_len <- length(group)
@@ -108,28 +118,50 @@ group_model.default <- function(x, group, type = "relative",
     vector(mode = "list", length = n_group),
     levs
   )
+  group_scaling <- ifelse_(groupwise, scaling, character(0L))
   groups <- vector(mode = "list", length = n_group)
   group <- as.integer(group)
   vals <- sort(unique(unlist(x[, cols])))
   alphabet <- vals[!is.na(vals)]
+  a <- length(alphabet)
+  seq_data <- create_seqdata(x, cols = cols, alphabet = alphabet)
+  trans <- compute_transitions(seq_data, a, type, params)
   for (i in seq_along(levs)) {
     groups[[i]] <- rep(i, sum(group == i, na.rm = TRUE))
     rows <- which(group == i)
-    d <- create_seqdata(
-      x[rows, ],
-      cols = cols,
-      alphabet = alphabet
-    )
-    model <- initialize_model(d, type, scaling, params)
-    clusters[[levs[i]]] <- build_model_(
-      weights = model$weights,
-      inits = model$inits,
-      labels = model$labels,
+    d <- seq_data[rows, , drop = FALSE]
+    attr(d, "alphabet") <- alphabet
+    attr(d, "labels") <- alphabet
+    attr(d, "colors") <- attr(seq_data, "colors")
+    inits <- factor(d[, 1L], levels = seq_len(a), labels = alphabet)
+    inits <- as.vector(table(inits))
+    weights <- compute_weights(
+      trans[rows, , , drop = FALSE],
       type = type,
-      scaling = scaling,
+      scaling = group_scaling,
+      a = a
+    )
+    dimnames(weights) <- list(alphabet, alphabet)
+    clusters[[i]] <- build_model_(
+      weights = weights,
+      inits = inits / sum(inits),
+      labels = alphabet,
+      type = type,
+      scaling = group_scaling,
       data = d,
       params = params
     )
+  }
+  if (!groupwise && length(scaling > 0)) {
+    weights <- scale_weights_global(
+      weights = lapply(clusters, "[[", "weights"),
+      type = type,
+      scaling = scaling,
+      a = a
+    )
+    for (i in seq_along(clusters)) {
+      clusters[[i]]$weights <- weights[[i]]
+    }
   }
   structure(
     clusters,
@@ -138,27 +170,39 @@ group_model.default <- function(x, group, type = "relative",
     levels = levs,
     na.rm = na.rm,
     cols = cols,
+    groupwise = groupwise,
+    type = type,
+    scaling = scaling,
     class = "group_tna"
   )
 }
 
 #' @export
-#' @family clusters
 #' @rdname group_model
-group_model.mhmm <- function(x, ...) {
+group_model.mhmm <- function(x, type = "relative",
+                             scaling = character(0L), groupwise = FALSE,
+                             cols, params = list(), na.rm = TRUE, ...) {
   stopifnot_(
     requireNamespace("seqHMM", quietly = TRUE),
     "Please install the {.pkg seqHMM} package."
   )
   check_missing(x)
   group <- summary(x)$most_probable_cluster
-  group_model.default(x$observations, group = group, ...)
+  group_model.default(
+    x = x$observations,
+    group = group,
+    type = type,
+    scaling = scaling,
+    groupwise = groupwise,
+    cols = cols,
+    params = params,
+    na.rm = na.rm,
+    ...
+  )
 }
 
 #' @export
 #' @rdname group_model
-#' @return An object of class `group_tna` which is a `list` containing one
-#'   element per cluster. Each element is a `tna` object.
 #' @examples
 #' model <- group_tna(group_regulation, group = gl(2, 1000))
 #'
@@ -169,8 +213,6 @@ group_tna <- function(x, ...) {
 
 #' @export
 #' @rdname group_model
-#' @return An object of class `group_tna` which is a `list` containing one
-#'   element per cluster. Each element is a `tna` object.
 #' @examples
 #' model <- group_ftna(group_regulation, group = gl(2, 1000))
 #'
@@ -180,8 +222,6 @@ group_ftna <- function(x, ...) {
 
 #' @export
 #' @rdname group_model
-#' @return An object of class `group_tna` which is a `list` containing one
-#'   element per cluster. Each element is a `tna` object.
 #' @examples
 #' model <- group_ctna(group_regulation, group = gl(2, 1000))
 #'
@@ -189,7 +229,16 @@ group_ctna <- function(x, ...) {
   group_model(x = x, type = "co-occurrence", ...)
 }
 
-#' Retrieve statistics from a mixture Markov model (MMM)
+#' @export
+#' @rdname group_model
+#' @examples
+#' model <- group_atna(group_regulation, group = gl(2, 1000))
+#'
+group_atna <- function(x, ...) {
+  group_model(x = x, type = "attention", ...)
+}
+
+#' Retrieve Statistics from a Mixture Markov Model (MMM)
 #'
 #' @export
 #' @family clusters
@@ -289,7 +338,7 @@ mmm_stats <- function(x, use_t_dist = TRUE, level = 0.05) {
   results
 }
 
-#' Rename clusters
+#' Rename Clusters
 #'
 #' @export
 #' @family clusters
@@ -314,4 +363,75 @@ rename_groups <- function(x, new_names) {
   )
   names(x) <- new_names
   x
+}
+
+#' Scale Transition Network Weights
+#'
+#' @param weights A `lsit` of edge weights matrices
+#' @param type Type of the transition network as a `character` string.
+#' @param scaling Scaling methods to apply as a `character` vector.
+#' @param a An `integer`, the number of states.
+#' @noRd
+scale_weights_global <- function(weights, type, scaling, a) {
+  g <- length(weights)
+  if (type == "relative") {
+    for (i in seq_len(g)) {
+      w <- weights[[i]]
+      rs <- .rowSums(w, m = a, n = a)
+      pos <- which(rs > 0)
+      w[pos, ] <- w[pos, ] / rs[pos]
+      w[!pos, ] <- NA
+      weights[[i]] <- w
+    }
+  }
+  weights_vec <- unlist(weights)
+  for (i in seq_along(scaling)) {
+    if (scaling[i] == "minmax") {
+      weights_vec[] <- ranger(weights_vec)
+    } else if (scaling[i] == "max") {
+      weights_vec[] <- weights_vec / max(weights_vec, na.rm = TRUE)
+    } else if (scaling[i] == "rank") {
+      weights_vec[] <- rank(weights_vec, ties.method = "average")
+    }
+  }
+  idx <- seq_len(a^2)
+  for (i in seq_len(g)) {
+    weights[[i]] <- matrix(weights_vec[idx], nrow = a, ncol = a)
+    idx <- idx + a^2
+  }
+  weights
+}
+
+#' Combine data from clusters into a single dataset in long format
+#'
+#' @param x A `group_tna` object.
+#' @param label optional group variable name as a `character` string
+#' @noRd
+combine_data <- function(x, label) {
+  cols <- attr(x, "cols")
+  groups <- attr(x, "groups")
+  group_var <- attr(x, "group_var")
+  data <- dplyr::bind_rows(
+    #lapply(x, function(y) y$data[, cols])
+    lapply(x, function(y) as.data.frame(y$data))
+  )
+  data[[group_var]] <- unlist(groups)
+  label <- ifelse_(
+    !missing(label),
+    label,
+    ifelse_(
+      group_var == ".group",
+      "Cluster",
+      group_var
+    )
+  )
+  check_string(label)
+  names(data) <- c(names(data)[-ncol(data)], label)
+  out <- data |>
+    tidyr::pivot_longer(cols = !(!!rlang::sym(label))) |>
+    dplyr::filter(!is.na(!!rlang::sym("value")))
+  list(
+    data = out,
+    label = label
+  )
 }

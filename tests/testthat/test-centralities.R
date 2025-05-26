@@ -1,7 +1,7 @@
 test_that("centralities computes correctly for a tna object", {
   result <- centralities(mock_tna)
   expect_s3_class(result, "tna_centralities")
-  expect_true(all(available_centrality_measures %in% colnames(result)))
+  expect_true(all(names(centrality_funs) %in% colnames(result)))
 })
 
 test_that("centralities handles loops correctly in a tna object", {
@@ -76,4 +76,10 @@ test_that("no cases dropped warns", {
     ),
     "No cases dropped for proportion 0\\.001\\. Skipping\\.\\.\\."
   )
+})
+
+test_that("RSP is NA with no transitions", {
+  mat <- mock_matrix
+  mat[1,] <- 0
+  expect_equal(rsp_bet(mat), NA)
 })

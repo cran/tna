@@ -12,7 +12,7 @@
 #' Edge Betweenness, Leading Eigenvector, and Spin Glass).
 #'
 #' @export
-#' @family patterns
+#' @family communities
 #' @rdname communities
 #' @param x A `tna` or a `group_tna` object.
 #' @param methods A `character` vector of community detection algorithms to
@@ -70,11 +70,7 @@ communities.tna <- function(x, methods, gamma = 1, ...) {
     "Argument {.arg gamma} must be a single {.cls numeric} value."
   )
   g <- as.igraph(x)
-  g_un <- igraph::as_undirected(
-    graph = g,
-    mode = "collapse",
-    edge.attr.comb = list(weight = "sum")
-  )
+  g_un <- as.igraph(x, mode = "plus")
   communities <- list()
   mapping <- list()
   w <- igraph::E(g)$weight
@@ -94,7 +90,7 @@ communities.tna <- function(x, methods, gamma = 1, ...) {
       args$weights <- NULL
     }
     if (method == "edge_betweenness") {
-      # TODO warning? supressing for now...
+      # TODO suppress for now
       communities[[method]] <- suppressWarnings(
         communities[[method]] <- do.call(
           supported_communities[[method]]$fun,
@@ -128,7 +124,7 @@ communities.tna <- function(x, methods, gamma = 1, ...) {
 #' @export
 #' @family clusters
 #' @rdname communities
-communities.group_tna <- function(x, methods, ...) {
+communities.group_tna <- function(x, methods, gamma = 1, ...) {
   check_missing(x)
   check_class(x, "group_tna")
   if (missing(methods)) {
@@ -136,7 +132,7 @@ communities.group_tna <- function(x, methods, ...) {
   }
   structure(
     stats::setNames(
-      lapply(x, communities, methods = methods, ...),
+      lapply(x, communities, methods = methods, gamma = gamma, ...),
       names(x)
     ),
     class = "group_tna_communities"

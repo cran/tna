@@ -1,22 +1,3 @@
-# TODO internal sequence data
-# test_that("tna works with sequence data", {
-#  seq_data <- TraMineR::seqdef(seqHMM::biofam3c$married)
-#  tna_model <- tna(seq_data)
-#
-#  expect_s3_class(tna_model, "tna")
-#  expect_true(is.list(tna_model$transits))
-#  expect_true(is.list(tna_model$inits))
-#  expect_true(is.character(tna_model$labels))
-#  expect_true(is.character(tna_model$colors))
-# })
-
-# test_that("tna works with matrix data without inits", {
-#   trans_matrix <- create_mock_matrix()
-#   expect_error(
-#     tna(trans_matrix),
-#     "argument \"inits\" is missing, with no default")
-# })
-
 test_that("tna works with matrix data with inits", {
   inits <- c(0.25, 0.25, 0.25, 0.25)
   tna_model <- tna(mock_matrix, inits = inits)
@@ -92,6 +73,7 @@ test_that("unnamed matrix gains dimnames", {
 test_that("tna aliases work", {
   expect_error(ftna(mock_freq_matrix), NA)
   expect_error(ctna(mock_sequence), NA)
+  expect_error(atna(mock_sequence), NA)
 })
 
 test_that("scaling options work", {
@@ -129,9 +111,8 @@ test_that("igraph conversion works", {
 })
 
 test_that("igraph conversion works for clusters", {
-  model <- group_tna(engagement_mmm)
   expect_error(
-    as.igraph(model, which = 1),
+    as.igraph(mmm_model, which = 1),
     NA
   )
 })
@@ -165,6 +146,10 @@ test_that("different model types work", {
     build_model(mock_sequence, type = "gap"),
     NA
   )
+  expect_error(
+    build_model(mock_sequence, type = "attention"),
+    NA
+  )
 })
 
 test_that("models can be constructed from tna_data objects", {
@@ -180,4 +165,10 @@ test_that("log-sum-exp is correct", {
     log_sum_exp(x),
     log(sum(exp(x)))
   )
+})
+
+test_that("number of nodes is correct", {
+  expect_equal(nodes(mock_tna), 4)
+  expect_equal(nodes(mmm_model), 3)
+  expect_equal(nodes(mock_matrix), 4)
 })

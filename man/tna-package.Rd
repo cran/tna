@@ -3,7 +3,7 @@
 \docType{package}
 \name{tna-package}
 \alias{tna-package}
-\title{The \code{tna} package.}
+\title{The \code{tna} Package.}
 \description{
 Provides tools for performing transition network analysis (TNA),
 including functions for building TNA models, plotting transition networks,
@@ -40,7 +40,30 @@ Useful links:
   \item Report bugs at \url{https://github.com/sonsoleslp/tna/issues/}
 }
 
+
+Basic functions
+\code{\link{build_model}()},
+\code{\link{hist.group_tna}()},
+\code{\link{hist.tna}()},
+\code{\link{import_data}()},
+\code{\link{plot.group_tna}()},
+\code{\link{plot.tna}()},
+\code{\link{plot_frequencies}()},
+\code{\link{plot_frequencies.group_tna}()},
+\code{\link{plot_mosaic}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
+\code{\link{prepare_data}()},
+\code{\link{print.group_tna}()},
+\code{\link{print.summary.group_tna}()},
+\code{\link{print.summary.tna}()},
+\code{\link{print.tna}()},
+\code{\link{print.tna_data}()},
+\code{\link{simulate.tna}()},
+\code{\link{summary.group_tna}()},
+\code{\link{summary.tna}()}
 }
 \author{
 Sonsoles López-Pernas, Santtu Tikka, Mohammed Saqr
 }
+\concept{basic}

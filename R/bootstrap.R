@@ -9,10 +9,10 @@
 #' cluster from the `tna` object. It then performs bootstrapping by resampling
 #' the sequence data and recalculating the edge weights for each
 #' bootstrap sample. The mean and standard deviation of the transitions are
-#' computed, and confidence intervals are derived. The function also calculates
+#' computed, and confidence intervals are derived. The function also estimates
 #' p-values for each edge and identifies significant edges based on
 #' the specified significance level. A matrix of significant edges
-#' (those with p-values below the significance level) is generated.
+#' (those with estimated p-values below the significance level) is generated.
 #' Additional statistics on removed edges (those not considered
 #' significant) are provided.
 #'
@@ -21,7 +21,7 @@
 #' structured list.
 #'
 #' @export
-#' @family evaluation
+#' @family validation
 #' @param x A `tna` or a `group_tna` object created from sequence data.
 #' @param iter An `integer` specifying the number of bootstrap samples to
 #' draw. Defaults to `1000`.
@@ -48,16 +48,21 @@
 #
 #'   * `weights_orig`: The original edge weight `matrix`.
 #'   * `weights_sig`: The `matrix` of significant transitions
-#'     (those with p-values below the significance level).
+#'     (those with estimated p-values below the significance level).
 #'   * `weights_mean`: The mean weight `matrix` from the bootstrap samples.
 #'   * `weights_sd`: The standard deviation `matrix` from the bootstrap samples.
-#'   * `ci_lower`: The lower bound `matrix` of the confidence intervals for
-#'     the edge weights.
-#'   * `ci_upper`: The upper bound `matrix` of the confidence intervals for
-#'     the edge weights.
-#'   * `p_values`: The `matrix` of p-values for the edge weights.
+#'   * `cr_lower`: The lower bound `matrix` of the consistency range for the
+#'     edge weights.
+#'   * `cr_upper`: The upper bound `matrix` of the consistency range for the
+#'     edge weights.
+#'   * `ci_lower`: The lower bound `matrix` of the bootstrap confidence
+#'     intervals for the edge weights.
+#'   * `ci_upper`: The upper bound `matrix` of the bootstrap confidence
+#'     intervals for the edge weights.
+#'   * `p_values`: The `matrix` of estimated p-values for the edge weights.
 #'   * `summary`: A `data.frame` summarizing the edges, their weights,
-#'     p-values, statistical significance and confidence intervals.
+#'     p-values, statistical significance, consistency ranges, and
+#'     confidence intervals.
 #'
 #' If `x` is a `group_tna` object, the output is a `group_tna_bootstrap`
 #' object, which is a `list` of `tna_bootstrap` objects.
@@ -71,8 +76,8 @@ bootstrap <- function(x, ...) {
   UseMethod("bootstrap")
 }
 
-#' @rdname bootstrap
 #' @export
+#' @rdname bootstrap
 bootstrap.tna <- function(x, iter = 1000, level = 0.05, method = "stability",
                           threshold, consistency_range = c(0.75, 1.25), ...) {
   check_missing(x)
@@ -125,7 +130,7 @@ bootstrap.tna <- function(x, iter = 1000, level = 0.05, method = "stability",
       p_values <- p_values + 1L * (weights_boot[i, , ] < threshold)
     }
   }
-  p_values <- p_values / iter
+  p_values <- (p_values + 1) / (iter + 1)
   weights_mean <- apply(weights_boot, c(2, 3), mean, na.rm = TRUE)
   weights_sd <- apply(weights_boot, c(2, 3), stats::sd, na.rm = TRUE)
   ci_lower <- apply(
@@ -135,7 +140,7 @@ bootstrap.tna <- function(x, iter = 1000, level = 0.05, method = "stability",
     probs = level / 2,
     na.rm = TRUE
   )
-  ci_upper <- apply(
+  ci_upper <-  apply(
     weights_boot,
     c(2, 3),
     stats::quantile,
@@ -151,14 +156,28 @@ bootstrap.tna <- function(x, iter = 1000, level = 0.05, method = "stability",
   dimnames(ci_upper) <- dim_names
   weights_vec <- as.vector(weights)
   combined <- data.frame(
-    from = rep(alphabet, each = a),
-    to = rep(alphabet, times = a),
+    from = rep(alphabet, times = a),
+    to = rep(alphabet, each = a),
     weight = weights_vec,
     p_value = as.vector(p_values),
     sig = as.vector(p_values < level),
+    cr_lower = as.vector(weights * consistency_range[1]),
+    cr_upper = as.vector(weights * consistency_range[2]),
     ci_lower = as.vector(ci_lower),
     ci_upper = as.vector(ci_upper)
   )[weights_vec > 0, ]
+  model <- x
+  tmp <- list(
+    weights = weights_sig,
+    method = "bootstrap",
+    removed = combined[which(!combined$sig), c("from", "to", "weight")],
+    num_removed = sum(!combined$sig),
+    num_retained = sum(combined$sig)
+  )
+  tmp$original <- model$weights
+  tmp$active <- TRUE
+  model$weights <- tmp$weights
+  attr(model, "pruning") <- tmp
   structure(
     list(
       weights_orig = weights,
@@ -166,23 +185,41 @@ bootstrap.tna <- function(x, iter = 1000, level = 0.05, method = "stability",
       weights_mean = weights_mean,
       weights_sd = weights_sd,
       p_values = p_values,
+      cr_lower = weights * consistency_range[1],
+      cr_upper = weights * consistency_range[2],
       ci_lower = ci_lower,
       ci_upper = ci_upper,
-      summary = combined
+      summary = combined,
+      model = model
     ),
     class = "tna_bootstrap"
   )
 }
 
 #' @export
-#' @family clusters
 #' @rdname bootstrap
-bootstrap.group_tna <- function(x, ...) {
+bootstrap.group_tna <- function(x, iter = 1000, level = 0.05,
+                                method = "stability", threshold,
+                                consistency_range = c(0.75, 1.25), ...) {
   check_missing(x)
   check_class(x, "group_tna")
+  stopifnot_(
+    length(attr(x, "scaling")) == 0L || attr(x, "groupwise"),
+    "Bootstrapping is not supported for
+     grouped models with globally scaled edge weights."
+  )
   structure(
     stats::setNames(
-      lapply(x, bootstrap, ...),
+      lapply(
+        x,
+        bootstrap,
+        iter = iter,
+        level = level,
+        method = method,
+        threshold = threshold,
+        consistency_range = consistency_range,
+        ...
+      ),
       names(x)
     ),
     class = "group_tna_bootstrap"

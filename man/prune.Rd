@@ -4,7 +4,7 @@
 \alias{prune}
 \alias{prune.tna}
 \alias{prune.group_tna}
-\title{Prune a \code{tna} network based on transition probabilities}
+\title{Prune a Transition Network based on Transition Probabilities}
 \usage{
 prune(x, ...)
 
@@ -69,47 +69,54 @@ pruned_disparity <- prune(model, method = "disparity", level = 0.5)
 
 }
 \seealso{
-Evaluation and validation functions
+Validation functions
 \code{\link{bootstrap}()},
-\code{\link{permutation_test}()},
-\code{\link{pruning_details}()}
-
-Evaluation and validation functions
-\code{\link{bootstrap}()},
-\code{\link{permutation_test}()},
-\code{\link{pruning_details}()}
-
-Cluster-related functions
-\code{\link{bootstrap}()},
-\code{\link{centralities}()},
-\code{\link{cliques}()},
-\code{\link{communities}()},
 \code{\link{deprune}()},
 \code{\link{estimate_cs}()},
-\code{\link{group_model}()},
-\code{\link{hist.group_tna}()},
-\code{\link{mmm_stats}()},
-\code{\link{plot.group_tna}()},
-\code{\link{plot.group_tna_centralities}()},
-\code{\link{plot.group_tna_cliques}()},
-\code{\link{plot.group_tna_communities}()},
+\code{\link{permutation_test}()},
+\code{\link{permutation_test.group_tna}()},
+\code{\link{plot.group_tna_bootstrap}()},
+\code{\link{plot.group_tna_permutation}()},
 \code{\link{plot.group_tna_stability}()},
-\code{\link{plot_compare.group_tna}()},
-\code{\link{plot_mosaic.group_tna}()},
-\code{\link{plot_mosaic.tna_data}()},
-\code{\link{print.group_tna}()},
+\code{\link{plot.tna_bootstrap}()},
+\code{\link{plot.tna_permutation}()},
+\code{\link{plot.tna_stability}()},
 \code{\link{print.group_tna_bootstrap}()},
-\code{\link{print.group_tna_centralities}()},
-\code{\link{print.group_tna_cliques}()},
-\code{\link{print.group_tna_communities}()},
+\code{\link{print.group_tna_permutation}()},
 \code{\link{print.group_tna_stability}()},
-\code{\link{print.summary.group_tna}()},
 \code{\link{print.summary.group_tna_bootstrap}()},
+\code{\link{print.summary.tna_bootstrap}()},
+\code{\link{print.tna_bootstrap}()},
+\code{\link{print.tna_permutation}()},
+\code{\link{print.tna_stability}()},
 \code{\link{pruning_details}()},
-\code{\link{rename_groups}()},
 \code{\link{reprune}()},
-\code{\link{summary.group_tna}()},
-\code{\link{summary.group_tna_bootstrap}()}
+\code{\link{summary.group_tna_bootstrap}()},
+\code{\link{summary.tna_bootstrap}()}
+
+Validation functions
+\code{\link{bootstrap}()},
+\code{\link{deprune}()},
+\code{\link{estimate_cs}()},
+\code{\link{permutation_test}()},
+\code{\link{permutation_test.group_tna}()},
+\code{\link{plot.group_tna_bootstrap}()},
+\code{\link{plot.group_tna_permutation}()},
+\code{\link{plot.group_tna_stability}()},
+\code{\link{plot.tna_bootstrap}()},
+\code{\link{plot.tna_permutation}()},
+\code{\link{plot.tna_stability}()},
+\code{\link{print.group_tna_bootstrap}()},
+\code{\link{print.group_tna_permutation}()},
+\code{\link{print.group_tna_stability}()},
+\code{\link{print.summary.group_tna_bootstrap}()},
+\code{\link{print.summary.tna_bootstrap}()},
+\code{\link{print.tna_bootstrap}()},
+\code{\link{print.tna_permutation}()},
+\code{\link{print.tna_stability}()},
+\code{\link{pruning_details}()},
+\code{\link{reprune}()},
+\code{\link{summary.group_tna_bootstrap}()},
+\code{\link{summary.tna_bootstrap}()}
 }
-\concept{clusters}
-\concept{evaluation}
+\concept{validation}

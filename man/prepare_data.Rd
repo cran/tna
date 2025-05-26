@@ -73,21 +73,8 @@ understand order in user behavior and provides flexibility when
 widening the data.
 }
 \examples{
-data <- tibble::tibble(
-  user = c("A", "A", "A", "B", "B", "C", "C", "C"),
-  time = c(
-    "2023-01-01 10:00:00", "2023-01-01 10:05:00",
-    "2023-01-01 10:20:00", "2023-01-01 12:00:00",
-    "2023-01-01 12:02:00", "2023-01-01 14:00:00",
-    "2023-01-01 14:05:00", "2023-01-01 14:10:00"
-  ),
-  action = c(
-    "view", "click", "add_cart", "view",
-    "checkout", "view", "click", "share"
-   )
-)
 results <- prepare_data(
-  data, actor = "user", time = "time", action = "action"
+  group_regulation_long, actor = "Actor", time = "Time", action = "Action"
 )
 print(results$sequence_data)
 print(results$meta_data)
@@ -110,7 +97,8 @@ print(results_ordered$statistics)
 
 data_single_session <- tibble::tibble(
   action = c(
-    "view", "click", "add_cart", "view", "checkout", "view", "click", "share"
+    "view", "click", "add_cart", "view",
+    "checkout", "view", "click", "share"
    )
 )
 results_single <- prepare_data(data_single_session, action = "action")
@@ -119,3 +107,27 @@ print(results_single$meta_data)
 print(results_single$statistics)
 
 }
+\seealso{
+Basic functions
+\code{\link{build_model}()},
+\code{\link{hist.group_tna}()},
+\code{\link{hist.tna}()},
+\code{\link{import_data}()},
+\code{\link{plot.group_tna}()},
+\code{\link{plot.tna}()},
+\code{\link{plot_frequencies}()},
+\code{\link{plot_frequencies.group_tna}()},
+\code{\link{plot_mosaic}()},
+\code{\link{plot_mosaic.group_tna}()},
+\code{\link{plot_mosaic.tna_data}()},
+\code{\link{print.group_tna}()},
+\code{\link{print.summary.group_tna}()},
+\code{\link{print.summary.tna}()},
+\code{\link{print.tna}()},
+\code{\link{print.tna_data}()},
+\code{\link{simulate.tna}()},
+\code{\link{summary.group_tna}()},
+\code{\link{summary.tna}()},
+\code{\link{tna-package}}
+}
+\concept{basic}
