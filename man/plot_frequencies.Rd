@@ -7,12 +7,23 @@
 \usage{
 plot_frequencies(x, ...)
 
-\method{plot_frequencies}{tna}(x, ...)
+\method{plot_frequencies}{tna}(x, width = 0.7, hjust = 1.2, show_label = TRUE, colors, ...)
 }
 \arguments{
 \item{x}{A \code{tna} object created from sequence data.}
 
 \item{...}{Ignored.}
+
+\item{width}{A \code{numeric} value for the Width of the bars. Default is 0.7,}
+
+\item{hjust}{A \code{numeric} value for the horizontal adjustment of the labels.
+Default is 1.2.}
+
+\item{show_label}{A \code{logical} value indicating whether to show a label with
+the frequency counts. Default is \code{TRUE}.}
+
+\item{colors}{A \code{character} vector of colors to be used in the plot
+(one per label) or a single color.}
 }
 \value{
 A \code{ggplot} object.
@@ -23,6 +34,7 @@ Plot the Frequency Distribution of States
 \examples{
 model <- tna(group_regulation)
 plot_frequencies(model)
+plot_frequencies(model, width =  0.5, colors = "pink")
 
 }
 \seealso{
@@ -30,20 +42,16 @@ Basic functions
 \code{\link{build_model}()},
 \code{\link{hist.group_tna}()},
 \code{\link{hist.tna}()},
-\code{\link{import_data}()},
 \code{\link{plot.group_tna}()},
 \code{\link{plot.tna}()},
 \code{\link{plot_frequencies.group_tna}()},
 \code{\link{plot_mosaic}()},
 \code{\link{plot_mosaic.group_tna}()},
 \code{\link{plot_mosaic.tna_data}()},
-\code{\link{prepare_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.summary.group_tna}()},
 \code{\link{print.summary.tna}()},
 \code{\link{print.tna}()},
-\code{\link{print.tna_data}()},
-\code{\link{simulate.tna}()},
 \code{\link{summary.group_tna}()},
 \code{\link{summary.tna}()},
 \code{\link{tna-package}}

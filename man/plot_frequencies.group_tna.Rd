@@ -4,7 +4,17 @@
 \alias{plot_frequencies.group_tna}
 \title{Plot the Frequency Distribution of States}
 \usage{
-\method{plot_frequencies}{group_tna}(x, label, ...)
+\method{plot_frequencies}{group_tna}(
+  x,
+  label,
+  colors,
+  width = 0.7,
+  palette = "Set2",
+  show_label = TRUE,
+  position = "dodge",
+  hjust = 1.2,
+  ...
+)
 }
 \arguments{
 \item{x}{A \code{group_tna} object.}
@@ -12,6 +22,19 @@
 \item{label}{An optional \code{character} string that can be provided to specify
 the grouping factor name if \code{x} was not constructed using a column name of
 the original data.}
+
+\item{colors}{A vector of colors to be used in the plot (one per group)}
+
+\item{width}{Width of the bars. Default is 0.7.}
+
+\item{palette}{A palette to be used if colors are not passed.}
+
+\item{show_label}{Boolean indicating whether to show a label with the
+frequency counts. Default is \code{TRUE}.}
+
+\item{position}{Position of the bars: "dodge", "dodge2", "fill" or "stack"}
+
+\item{hjust}{Horizontal adjustment of the labels. Default is 1.2.}
 
 \item{...}{Ignored.}
 }
@@ -23,7 +46,19 @@ Plot the Frequency Distribution of States
 }
 \examples{
 model <- group_model(engagement_mmm)
+# Default
 plot_frequencies(model)
+# Default labels outside and custom colors
+plot_frequencies(
+  model,
+  width = 0.9,
+  hjust = -0.3,
+  colors = c("#218516", "#f9c22e", "#53b3cb")
+)
+# Stacked with no labels
+plot_frequencies(model, position = "stack", show_label = FALSE)
+# Fill
+plot_frequencies(model, position = "fill", hjust = 1.1)
 
 }
 \seealso{
@@ -31,20 +66,16 @@ Basic functions
 \code{\link{build_model}()},
 \code{\link{hist.group_tna}()},
 \code{\link{hist.tna}()},
-\code{\link{import_data}()},
 \code{\link{plot.group_tna}()},
 \code{\link{plot.tna}()},
 \code{\link{plot_frequencies}()},
 \code{\link{plot_mosaic}()},
 \code{\link{plot_mosaic.group_tna}()},
 \code{\link{plot_mosaic.tna_data}()},
-\code{\link{prepare_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.summary.group_tna}()},
 \code{\link{print.summary.tna}()},
 \code{\link{print.tna}()},
-\code{\link{print.tna_data}()},
-\code{\link{simulate.tna}()},
 \code{\link{summary.group_tna}()},
 \code{\link{summary.tna}()},
 \code{\link{tna-package}}

@@ -17,6 +17,8 @@
   edge.label.position = 0.65,
   layout = "circle",
   layout_args = list(),
+  scale_nodes,
+  scaling_factor = 0.5,
   mar = rep(5, 4),
   theme = "colorblind",
   ...
@@ -49,14 +51,26 @@ pruned edges when \code{show_pruned = TRUE}. The default is \code{"pink"}.}
 
 \item{layout}{One of the following:
 \itemize{
-\item A \code{character} string describing a \code{qgraph} layout.
+\item A \code{character} string describing a \code{qgraph} layout (e.g., \code{"circle"})
+or the name of a \code{igraph} layout function (e.g., \code{"layout_on_grid"}).
 \item A \code{matrix} of node positions to use, with a row for each node and
 \code{x} and \code{y} columns for the node positions.
 \item A layout function from \code{igraph}.
 }}
 
 \item{layout_args}{A \code{list} of arguments to pass to the \code{igraph} layout
-function when \code{layout} is a function.}
+function when \code{layout} is a function or a character string that specifies
+a function name.}
+
+\item{scale_nodes}{A \code{character} string giving the name of a centrality
+measure to scale the node size by. See \code{\link[=centralities]{centralities()}} for valid names.
+If missing (the default), uses default \code{\link[qgraph:qgraph]{qgraph::qgraph()}} scaling.
+Overrides \code{vsize} provided via \code{...}.}
+
+\item{scaling_factor}{A \code{numeric} value specifying how strongly to scale
+the nodes when \code{scale_nodes} is provided. Values
+between 0 and 1 will result in smaller differences and values larger
+than 1 will result in greater differences. The default is \code{0.5}.}
 
 \item{mar}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
 
@@ -83,20 +97,16 @@ Basic functions
 \code{\link{build_model}()},
 \code{\link{hist.group_tna}()},
 \code{\link{hist.tna}()},
-\code{\link{import_data}()},
 \code{\link{plot.group_tna}()},
 \code{\link{plot_frequencies}()},
 \code{\link{plot_frequencies.group_tna}()},
 \code{\link{plot_mosaic}()},
 \code{\link{plot_mosaic.group_tna}()},
 \code{\link{plot_mosaic.tna_data}()},
-\code{\link{prepare_data}()},
 \code{\link{print.group_tna}()},
 \code{\link{print.summary.group_tna}()},
 \code{\link{print.summary.tna}()},
 \code{\link{print.tna}()},
-\code{\link{print.tna_data}()},
-\code{\link{simulate.tna}()},
 \code{\link{summary.group_tna}()},
 \code{\link{summary.tna}()},
 \code{\link{tna-package}}

@@ -53,8 +53,7 @@ group_model.default <- function(x, group, type = "relative",
   check_flag(groupwise)
   check_flag(na.rm)
   stopifnot_(
-    inherits(x, "stslist") ||
-      inherits(x, "data.frame") || inherits(x, "tna_data"),
+    inherits(x, c("stslist", "data.frame", "tna_data")),
     "Argument {.arg x} must be {.cls stslist} (sequence object), a
     {.cls data.frame} or a {.cls tna_data} object."
   )
@@ -64,7 +63,13 @@ group_model.default <- function(x, group, type = "relative",
     x <- wide
   } else {
     cols <- ifelse_(missing(cols), seq_len(ncol(x)), cols)
-    check_range(cols, type = "integer", scalar = FALSE, min = 1L, max = ncol(x))
+    check_range(
+      cols,
+      type = "integer",
+      scalar = FALSE,
+      lower = 1L,
+      upper = ncol(x)
+    )
   }
   group <- ifelse_(
     missing(group),
@@ -80,16 +85,18 @@ group_model.default <- function(x, group, type = "relative",
     "Argument {.arg group} must be of length one or the same length as the
      number of rows/sequences in {.arg x}."
   )
-  group_var <- ".group"
+  label <- "Cluster"
   prefix <- "Argument"
   if (group_len == 1L) {
+    x_names <- names(x)
     stopifnot_(
-      group %in% names(x),
+      group %in% x_names,
       "Argument {.arg group} must be a column name of {.arg x}
        when of length one."
     )
-    group_var <- group
-    group <- x[[group]]
+    label <- group
+    cols <- setdiff(cols, which(x_names == group))
+    group <- as.factor(x[[group]])
     prefix <- "Column"
   }
   group_na <- any(is.na(group))
@@ -105,13 +112,12 @@ group_model.default <- function(x, group, type = "relative",
   group <- ifelse_(
     is.factor(group),
     group,
-    factor(group)
+    factor(
+      group,
+      labels = paste0("Group ", seq_len(n_unique(group[!is.na(group)])))
+    )
   )
-  group <- ifelse_(
-    group_na && !na.rm,
-    addNA(group),
-    group
-  )
+  group <- ifelse_(group_na && !na.rm, addNA(group), group)
   levs <- levels(group)
   n_group <- length(levs)
   clusters <- stats::setNames(
@@ -122,7 +128,11 @@ group_model.default <- function(x, group, type = "relative",
   groups <- vector(mode = "list", length = n_group)
   group <- as.integer(group)
   vals <- sort(unique(unlist(x[, cols])))
-  alphabet <- vals[!is.na(vals)]
+  alphabet <- ifelse_(
+    inherits(x, "stslist"),
+    attr(x, "alphabet"),
+    vals[!is.na(vals)]
+  )
   a <- length(alphabet)
   seq_data <- create_seqdata(x, cols = cols, alphabet = alphabet)
   trans <- compute_transitions(seq_data, a, type, params)
@@ -152,6 +162,7 @@ group_model.default <- function(x, group, type = "relative",
       params = params
     )
   }
+  names(groups) <- names(clusters)
   if (!groupwise && length(scaling > 0)) {
     weights <- scale_weights_global(
       weights = lapply(clusters, "[[", "weights"),
@@ -166,7 +177,7 @@ group_model.default <- function(x, group, type = "relative",
   structure(
     clusters,
     groups = groups,
-    group_var = group_var,
+    label = label,
     levels = levs,
     na.rm = na.rm,
     cols = cols,
@@ -243,21 +254,18 @@ group_atna <- function(x, ...) {
 #' @export
 #' @family clusters
 #' @param x A `mhmm` object.
-#' @param use_t_dist A `logical` value. If `TRUE` (the default), the
-#' t-distribution is used to compute confidence intervals.
 #' @param level A `numeric` value representing the significance level for
 #' hypothesis testing and confidence intervals. Defaults to `0.05`.
 #' @return A `data.frame` object.
 #' @examples
 #' mmm_stats(engagement_mmm)
 #'
-mmm_stats <- function(x, use_t_dist = TRUE, level = 0.05) {
+mmm_stats <- function(x, level = 0.05) {
   stopifnot_(
     requireNamespace("seqHMM", quietly = TRUE),
     "Please install the {.pkg seqHMM} package."
   )
   check_missing(x)
-  check_flag(use_t_dist)
   check_range(level)
   stopifnot_(
     inherits(x, "mhmm"),
@@ -266,28 +274,17 @@ mmm_stats <- function(x, use_t_dist = TRUE, level = 0.05) {
       `i` = "See the {.pkg seqHMM} package for more information."
     )
   )
-
   model_summary <- summary(x)
-  # Extract necessary information
   coef <- model_summary$coefficients
   vcov <- model_summary$vcov
-
-  # Initialize lists to store results
   coef_flat <- c()
   se_flat <- c()
   cluster_list <- c()
   variable_list <- c()
-
-  # Exclude the reference cluster (assumed to be the first cluster)
-  coef <- as.matrix(coef)[, -1, drop = FALSE]
-
-  # Extract the diagonal of the vcov matrix
+  coef <- as.matrix(coef)[, -1L, drop = FALSE]
   vcov_diag <- sqrt(diag(vcov))
-
-  # Flatten the coefficients and map them to the corresponding standard errors
   num_vars <- nrow(coef)
   num_clusters <- ncol(coef)
-
   for (cluster in seq_len(num_clusters)) {
     for (var in seq_len(num_vars)) {
       coef_flat <- c(coef_flat, coef[var, cluster])
@@ -296,43 +293,24 @@ mmm_stats <- function(x, use_t_dist = TRUE, level = 0.05) {
       variable_list <- c(variable_list, rownames(coef)[var])
     }
   }
-
-  # Ensure the lengths match
   stopifnot_(
     length(coef_flat) == length(se_flat),
     "The lengths of the coefficients and standard errors do not match."
   )
-
-  # Calculate z-value or t-value
   statistic <- coef_flat / se_flat
-
-  # Determine degrees of freedom if using t-distribution
-  if (use_t_dist && !is.null(model_summary$df.residual)) {
-    df <- model_summary$df.residual
-    # Calculate p-values using t-distribution
-    p_value <- 2 * (1 - stats::pt(abs(statistic), df))
-    # Calculate confidence intervals
-    ci_margin <- stats::qt(1 - level / 2.0, df) * se_flat
-  } else {
-    # Calculate p-values using normal distribution
-    p_value <- 2 * (1 - stats::pnorm(abs(statistic)))
-    # Calculate confidence intervals
-    ci_margin <- stats::qnorm(1 - level / 2.0) * se_flat
-  }
-
+  p_value <- 2 * (1 - stats::pnorm(abs(statistic)))
+  ci_margin <- stats::qnorm(1 - level / 2.0) * se_flat
   ci_lower <- coef_flat - ci_margin
   ci_upper <- coef_flat + ci_margin
-
-  # Create a data frame with all results in the desired order
   results <- data.frame(
     cluster = cluster_list,
     variable = variable_list,
     estimate = coef_flat,
     p_value = p_value,
     ci_lower = ci_lower,
-    ci_Upper = ci_upper,
+    ci_upper = ci_upper,
     std_rrror = se_flat,
-    t_value = statistic # or z_value depending on distribution
+    z_value = statistic
   )
   rownames(results) <- NULL
   results
@@ -402,36 +380,17 @@ scale_weights_global <- function(weights, type, scaling, a) {
   weights
 }
 
-#' Combine data from clusters into a single dataset in long format
+#' Combine data from clusters into a single dataset
 #'
 #' @param x A `group_tna` object.
-#' @param label optional group variable name as a `character` string
+#' @param pivot A `logical` value for whether to pivot data into long format.
 #' @noRd
-combine_data <- function(x, label) {
+combine_data <- function(x) {
   cols <- attr(x, "cols")
   groups <- attr(x, "groups")
-  group_var <- attr(x, "group_var")
   data <- dplyr::bind_rows(
-    #lapply(x, function(y) y$data[, cols])
     lapply(x, function(y) as.data.frame(y$data))
   )
-  data[[group_var]] <- unlist(groups)
-  label <- ifelse_(
-    !missing(label),
-    label,
-    ifelse_(
-      group_var == ".group",
-      "Cluster",
-      group_var
-    )
-  )
-  check_string(label)
-  names(data) <- c(names(data)[-ncol(data)], label)
-  out <- data |>
-    tidyr::pivot_longer(cols = !(!!rlang::sym(label))) |>
-    dplyr::filter(!is.na(!!rlang::sym("value")))
-  list(
-    data = out,
-    label = label
-  )
+  data$.group <- unlist(groups)
+  data
 }
