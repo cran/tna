@@ -8,6 +8,9 @@ knitr::opts_chunk$set(
   dpi = 100,
   comment = "#>"
 )
+suppressPackageStartupMessages({
+  library("tna")
+})
 
 ## -----------------------------------------------------------------------------
 library("tna")

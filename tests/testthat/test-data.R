@@ -218,22 +218,31 @@ test_that("wide format sequence data can be imported", {
 
 test_that("one-hot data can be imported", {
   d <- data.frame(
-    window = gl(100, 5),
+    actor = gl(100, 5),
+    session = gl(10, 50),
     feature1 = rbinom(500, 1, prob = 0.33),
     feature2 = rbinom(500, 1, prob = 0.25),
     feature3 = rbinom(500, 1, prob = 0.50)
   )
   expect_error(
-    model1 <- import_onehot(d, feature1:feature3, window = "window"),
+    import_onehot(d, feature1:feature3),
     NA
   )
   expect_error(
-    model2 <- import_onehot(d, feature1:feature3, window = 5),
+    import_onehot(d, feature1:feature3, window_size = 5),
     NA
   )
-  expect_equal(
-    model1,
-    model2
+  expect_error(
+    import_onehot(d, feature1:feature3, actor = "actor"),
+    NA
+  )
+  expect_error(
+    import_onehot(d, feature1:feature3, session = "session"),
+    NA
+  )
+  expect_error(
+    import_onehot(d, feature1:feature3, actor = "actor", session = "session"),
+    NA
   )
 })
 
@@ -271,4 +280,102 @@ test_that("invalid column selection fails", {
     get_cols(rlang::quo(1i), mock_sequence),
     "Columns must be selected using a tidy selection"
   )
+  expect_error(
+    get_cols(rlang::quo("T7"), mock_sequence),
+    "Can't select columns that don't exist"
+  )
+  expect_error(
+    get_cols(rlang::quo(7), mock_sequence),
+    "Can't select columns that don't exist"
+  )
+})
+
+# Tests for import_onehot with sliding window
+test_that("import_onehot works with sliding window type", {
+  d <- data.frame(
+    actor = gl(10, 10),
+    session = gl(5, 20),
+    feature1 = rbinom(100, 1, prob = 0.33),
+    feature2 = rbinom(100, 1, prob = 0.25),
+    feature3 = rbinom(100, 1, prob = 0.50)
+  )
+  expect_error(
+    result <- import_onehot(
+      d,
+      feature1:feature3,
+      actor = "actor",
+      session = "session",
+      window_size = 3,
+      window_type = "sliding"
+    ),
+    NA
+  )
+  expect_s3_class(result, "data.frame")
+})
+
+test_that("import_onehot works with aggregate = TRUE", {
+  d <- data.frame(
+    actor = gl(10, 10),
+    session = gl(5, 20),
+    feature1 = rbinom(100, 1, prob = 0.33),
+    feature2 = rbinom(100, 1, prob = 0.25),
+    feature3 = rbinom(100, 1, prob = 0.50)
+  )
+  expect_error(
+    result <- import_onehot(
+      d,
+      feature1:feature3,
+      actor = "actor",
+      session = "session",
+      window_size = 2,
+      aggregate = TRUE
+    ),
+    NA
+  )
+  expect_s3_class(result, "data.frame")
+})
+
+test_that("import_onehot works with sliding window and aggregate", {
+  d <- data.frame(
+    actor = gl(10, 10),
+    session = gl(5, 20),
+    feature1 = rbinom(100, 1, prob = 0.33),
+    feature2 = rbinom(100, 1, prob = 0.25),
+    feature3 = rbinom(100, 1, prob = 0.50)
+  )
+  expect_error(
+    result <- import_onehot(
+      d,
+      feature1:feature3,
+      window_size = 2,
+      window_type = "sliding",
+      aggregate = TRUE
+    ),
+    NA
+  )
+  expect_s3_class(result, "data.frame")
+})
+
+test_that("parse_time handles milliseconds unix time", {
+  time <- c(1609459200000, 1609459260000, 1609459320000)
+  rlang::local_options(rlib_message_verbosity = "quiet")
+  result <- tna:::parse_time(
+    time,
+    custom_format = NULL,
+    is_unix_time = TRUE,
+    unix_time_unit = "milliseconds"
+  )
+  expect_s3_class(result, "POSIXct")
+})
+
+test_that("parse_time handles microseconds unix time", {
+  time <- c(1609459200000000, 1609459260000000, 1609459320000000)
+  rlang::local_options(rlib_message_verbosity = "quiet")
+  result <- tna:::parse_time(
+    time,
+    custom_format = NULL,
+    is_unix_time = TRUE,
+    unix_time_unit = "microseconds"
+  )
+  expect_s3_class(result, "POSIXct")
 })

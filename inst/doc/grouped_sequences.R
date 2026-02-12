@@ -13,6 +13,7 @@ suppressPackageStartupMessages({
   library("tibble")
   library("dplyr")
   library("gt")
+  library("seqHMM")
 })
 
 ## ----eval = FALSE----------------------------------------------------------------

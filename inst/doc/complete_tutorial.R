@@ -20,10 +20,8 @@ options(max.print = 30)
 options(width = 83)
 
 ## --------------------------------------------------------------------------------
-# Install `tna` if you haven't already
-# install.packages("tna")
 library("tna")
-data("group_regulation")
+data("group_regulation", package = "tna")
 
 ## ----message = FALSE, results = FALSE--------------------------------------------
 model <- tna(group_regulation)
