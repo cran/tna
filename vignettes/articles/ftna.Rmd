@@ -1,8 +1,8 @@
 ---
-title: "Frequency-based tna"
+title: "Frequency-based TNA"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Frequency-based tna}
+  %\VignetteIndexEntry{Frequency-based TNA}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -131,7 +131,7 @@ pruned_disparity <- prune(model_scaled, method = "disparity", alpha = 0.5)
 plot(pruned_threshold)
 plot(pruned_lowest)
 plot(pruned_disparity)
-plot(model_scaled, minimum = 0.05, cut = 0.1)
+plot(model_scaled)
 ```
 
 ## Patterns
@@ -150,7 +150,7 @@ cliques_of_two <- cliques(
 
 # Print and visualize the identified 2-cliques (dyads)
 print(cliques_of_two)  # Display details of 2-cliques
-plot(cliques_of_two, ask = F, vsize = 20)   # Visualize 2-cliques in the network
+plot(cliques_of_two, ask = F)   # Visualize 2-cliques in the network
 ```
 ```{r, fig.align='center'}
 layout(matrix(1:6, ncol = 3))
@@ -252,8 +252,8 @@ plot(edge_between)
 
 ```{r, fig.align='center', fig.width=5, fig.height=5}
 detected_communities <- communities(model_scaled)
-plot(detected_communities, minimum = 0.05)
-print(detected_communities)
+plot(detected_communities, method = "leading_eigen")
+print(detected_communities, method = "leading_eigen")
 ```
 
 ## Bootstrapping
@@ -289,7 +289,7 @@ plot_compare(Hi, Lo, minimum = 0.0001)
 Permutation <- permutation_test(Hi, Lo, it = 1000)
 
 # Plot the significant differences identified in the permutation test
-plot(Permutation, minimum = 0.01)
+plot(Permutation)
 ```
 
 ## Centrality stability

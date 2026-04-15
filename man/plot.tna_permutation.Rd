@@ -4,24 +4,27 @@
 \alias{plot.tna_permutation}
 \title{Plot the Significant Differences from a Permutation Test}
 \usage{
-\method{plot}{tna_permutation}(x, colors, posCol = "#009900", negCol = "red", ...)
+\method{plot}{tna_permutation}(x, colors, posCol = "#009900", negCol = "red", edge_labels = TRUE, ...)
 }
 \arguments{
 \item{x}{A \code{tna_permutation} object.}
 
-\item{colors}{See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
+\item{colors}{See \code{\link[cograph:splot]{cograph::splot()}}.}
 
 \item{posCol}{Color for plotting edges
-the difference in edge weights is positive. See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
+the difference in edge weights is positive. See \code{\link[cograph:splot]{cograph::splot()}}.}
 
 \item{negCol}{Color for plotting edges when
-the the difference in edge weights is negative. See \code{\link[qgraph:qgraph]{qgraph::qgraph()}}.}
+the the difference in edge weights is negative. See \code{\link[cograph:splot]{cograph::splot()}}.}
+
+\item{edge_labels}{Boolean indicating whether edge labels should be
+ploted. Defaults to \code{TRUE}}
 
 \item{...}{Arguments passed to \code{\link[=plot_model]{plot_model()}}.}
 }
 \value{
-A \code{qgraph} object containing only the significant edges according
-to the permutation test.
+A \code{cograph_network} object containing only the significant edges
+according to the permutation test.
 }
 \description{
 Plot the Significant Differences from a Permutation Test

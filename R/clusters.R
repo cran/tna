@@ -2,10 +2,11 @@
 #'
 #' Performs clustering using specified dissimilarity measures
 #' and clustering methods. The rows of the data are first converted to strings
-#' and compared using the dissimilarity measures available in the 
+#' and compared using the dissimilarity measures available in the
 #' `stringdist` package.
 #'
-#' @param data A `data.frame` or a `matrix` in wide format.
+#' @param data A `data.frame`, a `matrix` in wide format, or a `tna_data`
+#'   object (in which case, the sequence data is extracted automatically).
 #' @param k An `integer` giving the number of clusters.
 #' @param dissimilarity A `character` string specifying the
 #'   dissimilarity measure. The available options are: `"osa"`, `"lv"`, `"dl"`,
@@ -51,9 +52,13 @@
 cluster_data <- function(data, k, dissimilarity = "hamming",
                          method = "pam", na_syms = c("*", "%"),
                          weighted = FALSE, lambda = 1.0, ...) {
+  if (inherits(data, "tna_data")) {
+    data <- data$sequence_data
+  }
   stopifnot_(
     is.data.frame(data) || is.matrix(data),
-    "Argument {.arg data} must be a {.cls data.frame} or a {.cls matrix}."
+    "Argument {.arg data} must be a {.cls data.frame}, a {.cls matrix},
+    or a {.cls tna_data} object."
   )
   check_range(k, type = "integer", lower = 2L, upper = nrow(data) - 1L)
   dissimilarity <- check_match(dissimilarity, available_clustering_metrics)
@@ -201,7 +206,7 @@ osa_dist <- function(x, y, n, m, ...) {
   d[1L, ] <- 0:m
   for (i in seq_len(n)) {
     for (j in seq_len(m)) {
-      cost <- 0L + 1L * (x[i] == y[j])
+      cost <- 0L + 1L * (x[i] != y[j])
       d[i + 1L, j + 1L] <- min(
         d[i, j + 1L] + 1L,
         d[i + 1L, j] + 1L,
@@ -221,7 +226,7 @@ levenshtein_dist <- function(x, y, n, m, ...) {
   d[1L, ] <- 0:m
   for (i in seq_len(n)) {
     for (j in seq_len(m)) {
-      cost <- 0L + 1L * (x[i] == y[j])
+      cost <- 0L + 1L * (x[i] != y[j])
       d[i + 1L, j + 1L] <- min(
         d[i, j + 1L] + 1L,
         d[i + 1L, j] + 1L,
@@ -233,23 +238,46 @@ levenshtein_dist <- function(x, y, n, m, ...) {
 }
 
 damerau_levenshtein_dist <- function(x, y, n, m, ...) {
-  d <- matrix(0L, n + 1L, m + 1L)
-  d[, 1L] <- 0:n
-  d[1L, ] <- 0:m
-  for (i in seq_len(n)) {
-    for (j in seq_len(m)) {
-      cost <- 0L + 1L * (x[i] == y[j])
-      d[i + 1L, j + 1L] <- min(
-        d[i, j + 1L] + 1L,
-        d[i + 1L, j] + 1L,
-        d[i, j] + cost
-      )
-      if (i > 1 && j > 1 && x[i] == y[j - 1L] && x[i - 1L] == y[j]) {
-        d[i + 1L, j + 1L] <- min(d[i + 1L, j + 1L], d[i - 1L, j - 1L] + 1L)
-      }
-    }
+  if (n == 0) {
+    return(m)
   }
-  d[n + 1L, m + 1L]
+  if (m == 0) {
+    return(n)
+  }
+  alphabet <- unique(c(x, y))
+  last <- stats::setNames(rep(0L, length(alphabet)), alphabet)
+  d <- matrix(0L, n + 2L, m + 2L)
+  maxdist <- n + m
+  cost <- 0L
+  d[1L, ] <- maxdist
+  d[, 1L] <- maxdist
+  for (i in 0:n) {
+    d[i + 2L, 2L] <- i
+  }
+  for (j in 0:m) {
+    d[2L, j + 2L] <- j
+  }
+  for (i in seq_len(n)) {
+    db <- 0L
+    for (j in seq_len(m)) {
+      k <- last[[y[j]]] %||% 0L
+      l <- db
+      if (x[i] == y[j]) {
+        cost <- 0L
+        db <- j
+      } else {
+        cost <- 1L
+      }
+      d[i + 2L, j + 2L] <- min(
+        d[i + 1L, j + 2L] + 1L,
+        d[i + 2L, j + 1L] + 1L,
+        d[i + 1L, j + 1L] + cost,
+        d[k + 1L, l + 1L] + (i - k - 1L) + (j - l - 1L) + 1L
+      )
+    }
+    last[[x[i]]] <- i
+  }
+  d[n + 2L, m + 2L]
 }
 
 hamming_dist <- function(x, y, n, m, weights, ...) {
@@ -263,14 +291,11 @@ lcs_dist <- function(x, y, n, m, ...) {
       if (x[i] == y[j]) {
         lcs_len[i + 1L, j + 1L] <- lcs_len[i, j] + 1L
       } else {
-        lcs_len[i + 1L, j + 1L] <- max(
-          lcs_len[i, j + 1L],
-          lcs_len[i + 1L, j]
-        )
+        lcs_len[i + 1L, j + 1L] <- max(lcs_len[i, j + 1L], lcs_len[i + 1L, j])
       }
     }
   }
-  max(n, m) - lcs_len[n + 1L, m + 1L]
+  n + m - 2L * lcs_len[n + 1L, m + 1L]
 }
 
 qgram_dist <- function(x, y, qx, qy, ...) {
@@ -308,13 +333,16 @@ jaccard_dist <- function(qx, qy, ...) {
 jaro_dist <- function(x, y, n, m, ...) {
   if (n == 0 && m == 0) return(0)
   if (n == 0 || m == 0) return(1)
-  match_dist <- floor(max(n, m) / 2) - 1
+  match_dist <- max(floor(max(n, m) / 2) - 1L, 0L)
   x_match <- rep(FALSE, n)
   y_match <- rep(FALSE, m)
   matches <- 0L
   for (i in seq_len(n)) {
     start <- max(1L, i - match_dist)
     end <- min(m, i + match_dist)
+    if (start > end) {
+      next
+    }
     for (j in start:end) {
       if (!y_match[j] && x[i] == y[j]) {
         x_match[i] <- TRUE
@@ -331,31 +359,36 @@ jaro_dist <- function(x, y, n, m, ...) {
   k <- 1L
   for (i in seq_len(n)) {
     if (x_match[i]) {
-      while (!y_match[k]) {
+      while (k <= m && !y_match[k]) {
         k <- k + 1L
       }
-      if (x[i] != y[k]) {
+      if (k <= m && x[i] != y[k]) {
         trans <- trans + 1L
       }
       k <- k + 1L
     }
   }
   trans <- trans / 2L
-  jaro <- (matches / n + matches / m + (matches - trans) / matches) / 3.0
-  1.0 - jaro
+  jaro_sim <- (matches / n + matches / m + (matches - trans) / matches) / 3.0
+  1.0 - jaro_sim
 }
 
 jaro_winkler_dist <- function(x, y, n, m, p = 0.1, max_l = 4L, ...) {
-  jaro_d <- 1 - jaro_dist(x, y, n, m)
+  jaro_sim <- 1 - jaro_dist(x, y, n, m)
+  if (jaro_sim == 0) {
+    return(1.0)
+  }
+  pref <- min(n, m, max_l)
   l <- 0L
-  for (k in seq_len(min(n, m, max_l))) {
+  for (k in seq_len(pref)) {
     if (x[k] == y[k]) {
       l <- l + 1L
     } else {
       break
     }
   }
-  jw <- jaro_d + l * p * (1.0 - jaro_d)
+  p <- min(p, 0.25)
+  jw <- jaro_sim + l * p * (1.0 - jaro_sim)
   1.0 - jw
 }
 

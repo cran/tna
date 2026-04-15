@@ -1,3 +1,15 @@
+# tna 1.2.2
+* Fix bug in `plot.tna_sequence_comparison`
+
+# tna 1.2.1
+
+* The `test` argument of `compare_sequences()` is now `TRUE` by default for backward compatibility.
+* Fixed an issue with `bootstrap()` when the model contained weights that were zero.
+* Fixed issues with several distance measures in `cluster_sequences()`.
+* Fixed edge ordering in `betweenness_network()`.
+* The packages no longer depends on `qgraph`.
+* Network plotting functionality now relies on `cograph` instead.
+
 # tna 1.2.0
 
 * Added the function `reliability()` for reliability analysis of `tna` models.

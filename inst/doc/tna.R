@@ -28,10 +28,7 @@ data("group_regulation", package = "tna")
 tna_model <- tna(group_regulation)
 
 ## ----fig.width=5, fig.height=5---------------------------------------------------
-plot(
-  tna_model, cut = 0.2, minimum = 0.05, 
-  edge.label.position = 0.8, edge.label.cex = 0.7
-)
+plot(tna_model)
 
 ## --------------------------------------------------------------------------------
 data.frame(`Initial prob.` = tna_model$inits, check.names = FALSE) |>

@@ -13,7 +13,7 @@ compare_sequences(x, ...)
   group,
   sub,
   min_freq = 5L,
-  test = FALSE,
+  test = TRUE,
   iter = 1000L,
   adjust = "bonferroni",
   ...
@@ -23,7 +23,7 @@ compare_sequences(x, ...)
   x,
   sub,
   min_freq = 5L,
-  test = FALSE,
+  test = TRUE,
   iter = 1000L,
   adjust = "bonferroni",
   ...
@@ -50,7 +50,7 @@ analysis. The default is \code{5}.}
 
 \item{test}{A \code{logical} value indicating whether to test the differences
 of pattern counts between the groups using a permutation test.
-The default is \code{FALSE}.}
+The default is \code{TRUE}.}
 
 \item{iter}{An \code{integer} giving the number of iterations for the permutation
 test. The default is \code{1000}.}
@@ -78,6 +78,7 @@ permutation samples divided by their standard deviation times square root of
 the number of observations.
 }
 \examples{
+\dontrun{
 group <- c(rep("High", 1000), rep("Low", 1000))
 comp <- compare_sequences(group_regulation, group)
 
@@ -88,6 +89,7 @@ comp_test <- compare_sequences(
   test = TRUE,
   iter = 10
 )
+}
 
 }
 \seealso{

@@ -201,57 +201,6 @@ check_flag <- function(x) {
   )
 }
 
-#' Check a `layout` Argument
-#'
-#' @param x A `tna` or a `tna_cliques` object.
-#' @param layout A `character` string, a `matrix`, or a `function`.
-#' @param args A `list` of arguments to pass to the layout function.
-#' @param ... Additional arguments passed to `as.igraph`.
-#' @noRd
-check_layout <- function(x, layout, args = list(), ...) {
-  if (is.character(layout)) {
-    layout <- tolower(layout)
-    layout_parsed <- try_(match.arg(layout, c("circle", "groups", "spring")))
-    if (inherits(layout_parsed, "try-error")) {
-      layout_fun <- str2lang(paste0("igraph::", layout))
-      args$graph <- as.igraph(x, ...)
-      layout_parsed <- try_(
-        do.call(eval(layout_fun), args)
-      )
-    }
-    stopifnot_(
-      !inherits(layout_parsed, "try-error"),
-      "A {.cls character} layout must be either {.val circle}, {.val groups},
-      {.val spring}, or the name of an {.pkg igraph} layout."
-    )
-    return(layout_parsed)
-  }
-  if (is.matrix(layout)) {
-    stopifnot_(
-      ncol(layout) == 2L,
-      c(
-        "A {.cls matrix} layout must have two columns:",
-        `x` = "Found {ncol(layout)} columns instead."
-      )
-    )
-    stopifnot_(
-      nrow(layout) == nodes(x),
-      c(
-        "A {.cls matrix} layout must have exactly one row for each node:",
-        `x` = "Expected {nodes(x)} rows but {nrow(layout)} were supplied."
-      )
-    )
-    return(layout)
-  }
-  stopifnot_(
-    is.function(layout),
-    "Argument {.arg layout} must be a {.cls character} string,
-     a {.cls matrix}, or a {.cls function}."
-  )
-  args$graph <- as.igraph(x, ...)
-  do.call(what = layout, args = args)
-}
-
 #' Check Edge Weight Matrix based on TNA Type
 #'
 #' @param x A `matrix` of edge weights.
@@ -401,34 +350,6 @@ check_cols <- function(cols, single = TRUE, missing_ok = TRUE) {
       "Argument {.arg {arg}} must provide a single column name."
     )
   }
-}
-
-check_em_control <- function(control) {
-  em_control_defaults <- list(
-    maxiter = 500L,
-    maxiter_m = 500L,
-    reltol = 1e-10,
-    reltol_m = 1e-6,
-    restarts = 10L,
-    seed = 1L,
-    step = 1.0
-  )
-  if (missing(control)) {
-    return(em_control_defaults)
-  }
-  for (n in names(em_control_defaults)) {
-    if (is.null(control[[n]])) {
-      control[[n]] <- em_control_defaults[[n]]
-    }
-  }
-  check_values(control$maxiter, strict = TRUE)
-  check_values(control$maxiter_m, strict = TRUE)
-  check_values(control$reltol, type = "numeric", strict = TRUE)
-  check_values(control$reltol_m, type = "numeric", strict = TRUE)
-  check_values(control$restarts, strict = TRUE)
-  check_values(control$seed)
-  check_range(control$step, lower = 0.0, upper = 1.0)
-  control
 }
 
 #' Check `build_model` dots arguments

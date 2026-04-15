@@ -29,7 +29,7 @@ print(model)
 
 ## ----fig.height=6, fig.width=6, fig.align='center', layout = c(1,1)--------------
 # TNA visualization
-plot(model, minimum = 0.05, cut = 0.1)
+plot(model)
 
 ## ----fig.show='hold', fig.width=5, fig.height=5----------------------------------
 layout(matrix(1:4, ncol = 2, byrow = TRUE))
@@ -42,7 +42,7 @@ pruned_disparity <- prune(model, method = "disparity", level = 0.5)
 plot(pruned_threshold)
 plot(pruned_lowest)
 plot(pruned_disparity)
-plot(model, minimum = 0.05, cut = 0.1)
+plot(model)
 
 ## --------------------------------------------------------------------------------
 layout(t(1:2))
@@ -54,7 +54,7 @@ cliques_of_two <- cliques(
   threshold = 0.15  # Only consider edges with weight > 0.15
 )
 print(cliques_of_two)
-plot(cliques_of_two, vsize = 15, edge.label.cex = 2, esize = 20, ask = FALSE)
+plot(cliques_of_two, ask = FALSE)
 
 ## ----fig.width=6,fig.height=2----------------------------------------------------
 layout(t(1:3))
@@ -66,7 +66,7 @@ cliques_of_three <- cliques(
   threshold = 0.05 # Only consider edges with weight > 0.05
 )
 print(cliques_of_three)
-plot(cliques_of_three, vsize = 25, edge.label.cex = 4, esize = 20, ask = FALSE)
+plot(cliques_of_three, ask = FALSE)
 
 ## ----fig.width=5-----------------------------------------------------------------
 # Identify 4-cliques (quadruples) from the TNA_Model
