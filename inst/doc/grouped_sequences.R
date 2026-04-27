@@ -13,7 +13,6 @@ suppressPackageStartupMessages({
   library("tibble")
   library("dplyr")
   library("gt")
-  library("seqHMM")
 })
 
 ## ----eval = FALSE----------------------------------------------------------------
@@ -21,7 +20,6 @@ suppressPackageStartupMessages({
 # library("tibble")
 # library("dplyr")
 # library("gt")
-# library("seqHMM")
 
 ## ----message = F-----------------------------------------------------------------
 data("group_regulation_long", package = "tna")
