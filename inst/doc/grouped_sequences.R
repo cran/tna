@@ -1,4 +1,4 @@
-## ----include = FALSE-------------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   fig.width = 6,
@@ -10,102 +10,68 @@ knitr::opts_chunk$set(
 )
 suppressPackageStartupMessages({
   library("tna")
-  library("tibble")
-  library("dplyr")
   library("gt")
 })
 
-## ----eval = FALSE----------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 # library("tna")
-# library("tibble")
-# library("dplyr")
 # library("gt")
 
-## ----message = F-----------------------------------------------------------------
+## ----message = FALSE----------------------------------------------------------
 data("group_regulation_long", package = "tna")
 prepared <- prepare_data(group_regulation_long,
                          actor = "Actor",
                          action = "Action",
                          time = "Time")
 
-## ----fig.width=9, fig.height=4---------------------------------------------------
+## ----fig.width=9, fig.height=4------------------------------------------------
 layout(t(1:2))
 achievers <- group_tna(prepared, group = "Achiever")
 plot(achievers)
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 plot_compare(achievers)
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 permutation_test_results <- permutation_test(achievers)
 plot(permutation_test_results)
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 subsequence_comparison  <- compare_sequences(achievers,
                                                   sub = 3:5,
                                                   min_freq = 5,
-                                                  correction = "fdr")
+                                                  adjust = "fdr")
 plot(subsequence_comparison, cells = TRUE)
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 clustering_results <- cluster_sequences(prepared, k = 3)
 
-## --------------------------------------------------------------------------------
-plot(
-  2:8,
-  sapply(2:8, \(k) cluster_sequences(prepared, k = k)$silhouette),
-  type = "b",
-  xlab = "Number of clusters (k)",
-  ylab = "Silhouette",
-  xaxt = "n"
-)
+## -----------------------------------------------------------------------------
+lapply(2:4, \(k) cluster_sequences(prepared, k = k))
 
-## --------------------------------------------------------------------------------
-tna_model_clus <- group_tna(prepared, group = clustering_results$assignments)
+## -----------------------------------------------------------------------------
+tna_model_clus <- group_tna(clustering_results)
 
-## ----fig.width=9, fig.height=9---------------------------------------------------
-layout(matrix(1:4, byrow = T, ncol = 2))
+## ----fig.width=9, fig.height=9------------------------------------------------
+layout(matrix(1:4, byrow = TRUE, ncol = 2))
 plot(tna_model_clus)
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 summary(tna_model_clus) |>
   gt() |>
   fmt_number(decimals = 2)
 
-## --------------------------------------------------------------------------------
-mat <- sapply(
-  tna_model_clus,
-  \(x) setNames(x$inits, x$labels)
-)
+## -----------------------------------------------------------------------------
+print(tna_model_clus, digits = 2)
 
-df <- data.frame(label = rownames(mat), mat, row.names = NULL)
-
-gt(df, rowname_col = "label") |> fmt_percent(columns = -label)
-
-## --------------------------------------------------------------------------------
-transitions <- lapply(
-  tna_model_clus,
-  function(x) {
-    x$weights |>
-      data.frame() |>
-      rownames_to_column("From\\To") |>
-      gt() |>
-      fmt_percent()
-  }
-)
-
-transitions[[1]] |> tab_header(title = names(tna_model_clus)[1])
-transitions[[2]] |> tab_header(title = names(tna_model_clus)[2])
-transitions[[3]] |> tab_header(title = names(tna_model_clus)[3])
-
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 cluster_boot <- bootstrap(tna_model_clus)
 
-## ----fig.width=9, fig.height=9, message = F--------------------------------------
-layout(matrix(1:4, byrow = T, ncol = 2))
+## ----fig.width=9, fig.height=9, message = FALSE-------------------------------
+layout(matrix(1:4, byrow = TRUE, ncol = 2))
 plot(cluster_boot)
 
-## ----fig.width=9, fig.height=4---------------------------------------------------
+## ----fig.width=9, fig.height=4------------------------------------------------
 centrality_measures <- c(
   "BetweennessRSP",
   "Closeness",
@@ -121,7 +87,7 @@ plot(
   colors = c("purple", "orange", "pink")
 )
 
-## --------------------------------------------------------------------------------
-subsequence_comparison  <- compare_sequences(tna_model_clus, sub = 3:5, min_freq = 5, correction = "fdr")
+## -----------------------------------------------------------------------------
+subsequence_comparison  <- compare_sequences(tna_model_clus, sub = 3:5, min_freq = 5, adjust = "fdr")
 plot(subsequence_comparison, cells = TRUE)
 

@@ -1,4 +1,4 @@
-## ----include = FALSE-------------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   fig.width = 6,
@@ -17,7 +17,7 @@ suppressPackageStartupMessages({
   library("dplyr")
 })
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 df <- tribble(
   ~user, ~timestamp, ~event, ~achievement, ~order,
   2, "2025-02-27 18:01:32", "Plan",           "High", 1,
@@ -55,22 +55,22 @@ df <- tribble(
 )
 
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 by_classroom <- prepare_data(df, action = "event")
 tna_by_classroom <- tna(by_classroom)
 plot(tna_by_classroom)
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 by_user <- prepare_data(df, actor = "user", action = "event", order = "order")
 tna_by_user <- tna(by_user)
 plot(tna_by_user)
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 by_session <- prepare_data(df, actor = "user", time = "timestamp", action = "event")
 tna_by_session <- tna(by_session)
 plot(tna_by_session)
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 by_session_custom <- prepare_data(
   df, actor = "user", time = "timestamp", 
   action = "event", time_threshold = 10 * 60 # 10 minutes
@@ -78,7 +78,7 @@ by_session_custom <- prepare_data(
 tna_by_session_custom <- tna(by_session_custom)
 plot(tna_by_session_custom)
 
-## ----fig.width=8,fig.height=3, echo=2:3------------------------------------------
+## ----fig.width=8,fig.height=3, echo=2:3---------------------------------------
 layout(t(1:2))
 gtna <- group_tna(by_user, group = "achievement")
 plot(gtna)

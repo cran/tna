@@ -14,10 +14,7 @@ suppressPackageStartupMessages({
   library("dplyr")
   library("gt")
 })
-options(scipen = 99)
-options(digits = 2)
-options(max.print = 30)
-options(width = 83)
+old_options <- options(scipen = 99, digits = 2, max.print = 30, width = 83)
 
 ## --------------------------------------------------------------------------------
 library("tna")
@@ -51,7 +48,7 @@ layout(t(1:2))
 cliques_of_two <- cliques(
   model, 
   size = 2, 
-  threshold = 0.15  # Only consider edges with weight > 0.15
+  threshold = 0.15  # Only consider edges with weight >= 0.15
 )
 print(cliques_of_two)
 plot(cliques_of_two, ask = FALSE)
@@ -63,7 +60,7 @@ layout(t(1:3))
 cliques_of_three <- cliques(
   model, 
   size = 3, 
-  threshold = 0.05 # Only consider edges with weight > 0.05
+  threshold = 0.05 # Only consider edges with weight >= 0.05
 )
 print(cliques_of_three)
 plot(cliques_of_three, ask = FALSE)
@@ -74,7 +71,7 @@ plot(cliques_of_three, ask = FALSE)
 cliques_of_four <- cliques(
   model, 
   size = 4, 
-  threshold = 0.035 # Only consider edges with weight > 0.03
+  threshold = 0.035 # Only consider edges with weight >= 0.035
 )
 print(cliques_of_four)
 plot(cliques_of_four, ask = FALSE)
@@ -89,12 +86,9 @@ plot(Centralities)
 ## --------------------------------------------------------------------------------
 # Calculate hub scores and the authority scores for the network
 hits_scores <- igraph::hits_scores(as.igraph(model))
-hub_scores <- hits_scores$hub
-authority_scores <- hits_scores$authority
 
-# Print the calculated hub and authority scores for further analysis
-print(hub_scores)
-print(authority_scores)
+# Print the calculated hub and authority scores (and the eigenvalue)
+print(hits_scores)
 
 ## ----fig.align='center', fig.width=6, fig.height=5.5, out.width="60%"------------
 # Edge betweenness
@@ -109,24 +103,24 @@ plot(communities, method = "leading_eigen")
 ## --------------------------------------------------------------------------------
 # Perform bootstrapping on the TNA model with a fixed seed for reproducibility
 set.seed(265)
-boot <- bootstrap(model, threshold = 0.05)
+boot <- bootstrap(model)
 
 # Print a summary of the bootstrap results
 print(summary(boot))
 
-# Show the non-significant edges (p-value >= 0.05 in this case)
+# Show the non-significant edges (p-value >= 0.05, the default level)
 # These are edges that are less likely to be stable across bootstrap samples
 print(boot, type = "nonsig")
 
 ## ----fig.align='center', fig.width = 5, fig.height = 5, layout = c(1,1)----------
 # Create TNA for the high-achievers subset (rows 1 to 1000)
-Hi <- tna(group_regulation[1:1000, ])
+Hi <- tna(head(group_regulation, 1000))
 
 # Create TNA for the low-achievers subset (rows 1001 to 2000)
-Lo <- tna(group_regulation[1001:2000, ])
+Lo <- tna(tail(group_regulation, 1000))
 
 # Plot a comparison of the "Hi" and "Lo" models
-# The 'minimum' parameter is set to 0.001, so edges with weights >= 0.001 are shown
+# The 'minimum' parameter is set to 0.01, so edges with weights >= 0.01 are shown
 plot_compare(Hi, Lo, minimum = 0.01)
 
 # Run a permutation test to determine statistical significance of differences
@@ -138,11 +132,14 @@ Permutation <- permutation_test(Hi, Lo, iter = 1000, measures = "Betweenness")
 plot(Permutation, minimum = 0.01)
 
 ## --------------------------------------------------------------------------------
-print(Permutation$edges$stats)
-print(Permutation$centralities$stats)
+summary(Permutation)
+summary(Permutation, what = "centralities")
 
 ## ----fig.align='center', fig.width=7, fig.height=4-------------------------------
 # Results of the Case-Dropping Bootstrap for Centrality Indices
 Centrality_stability <- estimate_centrality_stability(model, iter = 100)
 plot(Centrality_stability)
+
+## ----include = FALSE----------------------------------------------------------
+options(old_options)
 

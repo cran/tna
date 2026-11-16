@@ -1,4 +1,4 @@
-## ----include = FALSE-------------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   fig.width = 6,
@@ -10,41 +10,27 @@ knitr::opts_chunk$set(
 )
 suppressPackageStartupMessages({
   library("tna")
-  library("tibble")
-  library("dplyr")
-  library("gt")
 })
 
-## ----eval = FALSE----------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 # library("tna")
-# library("tibble")
-# library("dplyr")
-# library("gt")
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 data("group_regulation", package = "tna")
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 tna_model <- tna(group_regulation)
 
-## ----fig.width=5, fig.height=5---------------------------------------------------
+## ----fig.width=5, fig.height=5------------------------------------------------
 plot(tna_model)
 
-## --------------------------------------------------------------------------------
-data.frame(`Initial prob.` = tna_model$inits, check.names = FALSE) |>
-  rownames_to_column("Action") |>
-  arrange(desc(`Initial prob.`)) |>
-  gt() |>
-  fmt_percent()
+## -----------------------------------------------------------------------------
+print(tna_model, digits = 2)
 
-## --------------------------------------------------------------------------------
-tna_model$weights |>
-  data.frame() |>
-  rownames_to_column("From\\To") |>
-  gt() |>
-  fmt_percent()
+## -----------------------------------------------------------------------------
+summary(tna_model)
 
-## --------------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 centrality_measures <- c("BetweennessRSP", "Closeness", "InStrength", "OutStrength")
 cents_withoutloops <- centralities(
   tna_model,
@@ -52,5 +38,5 @@ cents_withoutloops <- centralities(
   loops = FALSE,
   normalize = TRUE
 )
-plot(cents_withoutloops, ncol = 2, model = tna_model)
+plot(cents_withoutloops, ncol = 2)
 
